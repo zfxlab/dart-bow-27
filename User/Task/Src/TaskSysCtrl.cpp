@@ -190,18 +190,18 @@ void Init_Dart_Config(DartLibrary* dart)
         vision_tx.DartNumber = id;
         vision_tx.target_id = dart_lib.runtime.referee.chosen_target;
         vision_tx.yaw = motorfdb.yaw_pos_fdb;
-        if (dart_lib.runtime.referee.game_status == 4 || dart_lib.runtime.game_status_ladar == 1 ||
-            (dart_lib.runtime.referee.shooting_remaining_time <= 30 && dart_lib.runtime.referee.shooting_remaining_time > 1))
-        {
-            vision_tx.start_state = 4;
-            dart_lib.runtime.game_status_stable = 4;
-            vision_tx.start_state_char = 'R'; //R代表开始比赛，这里多发送一个字符串保证视觉数据正确
-        }
-        else {
-            dart_lib.runtime.game_status_stable = 0;
-            vision_tx.start_state = 0;
-            vision_tx.start_state_char = '\0';
-        }
+        // if (dart_lib.runtime.referee.game_status == 4 || dart_lib.runtime.game_status_ladar == 1 ||
+        //     (dart_lib.runtime.referee.shooting_remaining_time <= 30 && dart_lib.runtime.referee.shooting_remaining_time > 1))
+        // {
+        //     vision_tx.start_state = 4;
+        //     dart_lib.runtime.game_status_stable = 4;
+        //     vision_tx.start_state_char = 'R'; //R代表开始比赛，这里多发送一个字符串保证视觉数据正确
+        // }
+        // else {
+        //     dart_lib.runtime.game_status_stable = 0;
+        //     vision_tx.start_state = 0;
+        //     vision_tx.start_state_char = '\0';
+        // }
 
         //遥控器offline保护和visionrx数据异常的灯控提示
         const bool remoter_offline_safety = remoter.offline && !autoAim_control;
