@@ -82,7 +82,7 @@ float debug_syn_tq;
     float string_L_spd = 0.0f;
     float string_R_spd = 0.0f;
     const uint16_t string_max_current = 5000;
-    const float string_open_loop_max_spd = 1000.0f;
+    const float string_open_loop_max_spd = 500.0f;
     const float string_force_limit_kg = 100.0f;
     const uint32_t gantry_alive_check_period = 100;
     const uint8_t gantry_alive_lost_limit = 3;
@@ -205,8 +205,8 @@ float debug_syn_tq;
             break;
         }
 
-        //! 目前yaw相当于不动
-        motor.yawMotor.positionSet = motor.yawMotor.motorFeedback.positionFdb;
+        // motor.yawMotor.positionSet = motor.yawMotor.motorFeedback.positionFdb;
+        motor.yawMotor.speedSet = motorctrl.yaw_spd;
 
         DMMotorHandler::Instance()->sendControlData();
 
@@ -242,6 +242,7 @@ float debug_syn_tq;
         motorfdb.gantry_pos_set = gantry_target_pos;
         motorfdb.syn_pos_fdb = motor.synbeltMotor.motorFeedback.positionFdb;
         motorfdb.syn_tq_fdb = motor.synbeltMotor.motorFeedback.torqueFdb;
+        motorfdb.yaw_pos_fdb = motor.yawMotor.motorFeedback.positionFdb; 
         om_publish(motorfdb_topic, &motorfdb, sizeof(msg_motorfdb_t), true, false);
 
 #ifdef MOTOR_DEBUG

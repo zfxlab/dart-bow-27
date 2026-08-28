@@ -111,16 +111,16 @@ struct msg_ins_t {
 struct msg_visionrx_t
 {
     uint8_t header; // 发送数据包的头
-    float distance;
-    float yaw; 
-    float distance_reserve;
-    float angle_reserve;
-    uint8_t flag_reserve;
-    uint8_t stable_state;//0不稳定，1稳定
+    // float distance_reserve;
+    // float angle_reserve;
+    // uint8_t flag_reserve;
     uint8_t light_detected; //0: unknown/no target /盲区内
                             //1: green light visible and aim data valid 
                             //2: door open but green light occluded //绿灯被遮
                             //3: door not fully open/blocked
+    uint8_t stable_state;//0不稳定，1稳定
+    float yaw; //! 目前下位机用的是旧版，rm26是相机中心和绿灯的像素点差，新版准备用绝对yaw_rad
+    float distance;
     uint16_t checksum; // 校验和
     
 }__attribute__((packed));
@@ -129,12 +129,16 @@ struct msg_visionrx_t
 struct msg_visiontx_t
 {
     uint8_t header; //0x5A
-    uint8_t start_state;
-    char  start_state_char;
     uint8_t target_id; //0-outpost 1-base
     uint8_t DartNumber;//1,2,3,4
-    // uint8_t selected_target_id;
     float offset;
+    // uint8_t start_state;
+    // char  start_state_char;
+    float yaw; //当前和标定的正中间零点的yaw值偏差
+
+    // uint8_t selected_target_id;
+
+
     uint16_t checksum;
 } __attribute__((packed));
 
@@ -271,6 +275,8 @@ struct msg_motorfdb_t
 
     float syn_pos_fdb;
     float syn_tq_fdb;
+
+    float yaw_pos_fdb;
 };
 
 // struct tof_data_t

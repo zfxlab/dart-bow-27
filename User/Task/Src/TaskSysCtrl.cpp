@@ -99,6 +99,8 @@ void Init_Dart_Config(DartLibrary* dart)
     config.pre_tension_kg = 32.0f;
 }
 
+    msg_remoter_t remoter{};
+
 [[nonreturn]] void SysctrlThreadFun(ULONG initial_input)
 {
     UNUSED(initial_input);
@@ -111,13 +113,16 @@ void Init_Dart_Config(DartLibrary* dart)
     msg_visiontx_t vision_tx{};
 
     om_suber_t *remoter_suber = om_subscribe(om_find_topic("remoter", UINT32_MAX));
-    msg_remoter_t remoter{};
+    // msg_remoter_t remoter{};
     om_suber_t *lch2sys_suber = om_subscribe(om_find_topic("lch2sys",UINT32_MAX));
     msg_launcher2sysctrl_t lch2sys{};
     om_suber_t *referee_suber = om_subscribe(om_find_topic("referee", UINT32_MAX));
     msg_referee_t referee_pack{};
     om_suber_t *visionrx_suber = om_subscribe(om_find_topic("visionrx",UINT32_MAX));
     msg_visionrx_t vision_rx{};
+
+    om_suber_t *motorfdb_suber = om_subscribe(om_find_topic("motorfdb", UINT32_MAX));
+    msg_motorfdb_t motorfdb{};
 
     //config initialization
     Init_Dart_Config(&dart_lib);
@@ -130,6 +135,7 @@ void Init_Dart_Config(DartLibrary* dart)
         om_suber_export(lch2sys_suber, &lch2sys, false);
         om_suber_export(visionrx_suber,&vision_rx,false);
         om_suber_export(referee_suber,&referee_pack,false);
+        om_suber_export(motorfdb_suber, &motorfdb, false);
         Update_referee_data(&referee_pack,&dart_lib);
 
         //Update runtime state
@@ -183,6 +189,7 @@ void Init_Dart_Config(DartLibrary* dart)
         vision_tx.offset = dart_lib.runtime.current_aim_target.yaw_offset;
         vision_tx.DartNumber = id;
         vision_tx.target_id = dart_lib.runtime.referee.chosen_target;
+        vision_tx.yaw = motorfdb.yaw_pos_fdb;
         if (dart_lib.runtime.referee.game_status == 4 || dart_lib.runtime.game_status_ladar == 1 ||
             (dart_lib.runtime.referee.shooting_remaining_time <= 30 && dart_lib.runtime.referee.shooting_remaining_time > 1))
         {

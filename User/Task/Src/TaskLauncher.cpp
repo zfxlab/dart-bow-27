@@ -65,6 +65,7 @@ msg_motorfdb_t debug_motorfdb{};
     const ULONG string_force_jump_ticks = 1000;
 
 
+
     motorctrl.Coil_L_spd = 0.0f;
     motorctrl.Coil_R_spd = 0.0f;
 
@@ -115,7 +116,7 @@ msg_motorfdb_t debug_motorfdb{};
 
 
         //直接处理yaw
-        motorctrl.yaw_spd = cmd.yaw;
+        motorctrl.yaw_spd = cmd.yaw*0.1f;
 
         //todo: 处理error信息[to test]
         bool string_force_error = (Numeric::abs(sensor.string_L_force_kg) > string_force_error_limit_kg) ||
@@ -211,7 +212,7 @@ msg_motorfdb_t debug_motorfdb{};
                 }
                 else if (cmd.action == DART_YAW_ADJUST)
                 {
-                    motorctrl.yaw_spd = cmd.yaw;
+                    motorctrl.yaw_spd = cmd.yaw*0.1f;
                 }
                 else if (cmd.action == DART_FIRE)
                 {
