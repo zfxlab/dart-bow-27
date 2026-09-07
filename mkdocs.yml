@@ -100,7 +100,9 @@ nav:
       - PnX Modules:
           - AHRS: api/ahrs.md
           - Referee: api/referee.md
-          - Remoter: api/remoter.md
+          - Remoter:
+              - Overview: api/remoter.md
+              - PS2 Controller: api/ps2.md
 
       - Devices:
           - Motors: api/motors.md
