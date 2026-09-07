@@ -91,6 +91,9 @@ endif()
 if(NOT ENABLE_PS2)
     list(FILTER PNX_EMBEDDED_SOURCES EXCLUDE REGEX "[/\\\\]pnx_modules[/\\\\]remoter[/\\\\]src[/\\\\]ps2\\.cpp$")
 endif()
+if(NOT ENABLE_PS2_UART)
+    list(FILTER PNX_EMBEDDED_SOURCES EXCLUDE REGEX "[/\\\\]pnx_modules[/\\\\]remoter[/\\\\]src[/\\\\]ps2_uart\\.cpp$")
+endif()
 
 file(GLOB_RECURSE PNX_EMBEDDED_HEADERS CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/pnx_bsp/*.h"

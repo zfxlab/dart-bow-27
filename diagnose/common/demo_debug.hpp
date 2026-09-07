@@ -105,11 +105,46 @@ struct imu_unit_state : unit_test_state
     float roll_difference = 0.0f;
 };
 
+struct ps2_unit_state : unit_test_state
+{
+    bool compiled_enabled = false;
+    bool initialized = false;
+    bool frame_valid = false;
+    bool analog_mode = false;
+    std::uint8_t last_status = protocol::status_code(types::status::not_configured);
+    std::uint8_t controller_id = 0U;
+    std::uint8_t raw[9] = {};
+    std::uint32_t init_count = 0U;
+    std::uint32_t poll_count = 0U;
+    std::uint32_t valid_frame_count = 0U;
+    std::uint32_t error_count = 0U;
+    bool select = false;
+    bool start = false;
+    bool up = false;
+    bool down = false;
+    bool left = false;
+    bool right = false;
+    bool l1 = false;
+    bool l2 = false;
+    bool r1 = false;
+    bool r2 = false;
+    bool triangle = false;
+    bool circle = false;
+    bool cross = false;
+    bool square = false;
+    bool l3 = false;
+    bool r3 = false;
+    float lx = 0.0f;
+    float ly = 0.0f;
+    float rx = 0.0f;
+    float ry = 0.0f;
+};
+
 struct remoter_unit_state : unit_test_state
 {
     bool offline = true;
     std::uint32_t source = 0;
-#if ENABLE_PS2
+#if ENABLE_PS2_UART
     std::uint32_t ps2_link = 0;
     std::uint16_t ps2_buttons = 0;
     std::uint16_t ps2_raw_buttons = 0;
@@ -186,6 +221,7 @@ struct debug_instance_type
     link_state usart{};
     link_state usb{};
     imu_unit_state imu_unit{};
+    ps2_unit_state ps2_unit{};
     unit_test_state motor_unit{};
     remoter_unit_state remoter_unit{};
     referee_ui_state referee_ui{};

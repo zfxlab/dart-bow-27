@@ -12,10 +12,14 @@
 #define HAS_DMIMU 1
 #define HAS_REMOTER 1
 #define HAS_VT03 1
-#define HAS_PS2 1
-#define ENABLE_DR16 1
+#define HAS_PS2_DEVICE 1
+#define PS2_BACKEND_SPI 0
+#define PS2_BACKEND_GPIO 1
+#define HAS_PS2_UART 1
+#define ENABLE_DR16 0
 #define ENABLE_VT03 0
-#define ENABLE_PS2 0
+#define ENABLE_PS2 1
+#define ENABLE_PS2_UART 0
 #define HAS_REFEREE 1
 #define HAS_UI 1
 #define HAS_LED 1
@@ -37,10 +41,12 @@ inline constexpr bool has_bmi088_heater = 1;
 inline constexpr bool has_dmimu = 1;
 inline constexpr bool has_remoter = 1;
 inline constexpr bool has_vt03 = 1;
-inline constexpr bool has_ps2 = 1;
-inline constexpr bool enable_dr16 = 1;
+inline constexpr bool has_ps2_device = 1;
+inline constexpr bool has_ps2_uart = 1;
+inline constexpr bool enable_dr16 = 0;
 inline constexpr bool enable_vt03 = 0;
-inline constexpr bool enable_ps2 = 0;
+inline constexpr bool enable_ps2 = 1;
+inline constexpr bool enable_ps2_uart = 0;
 inline constexpr bool has_referee = 1;
 inline constexpr bool has_ui = 1;
 inline constexpr bool has_led = 1;
@@ -103,16 +109,16 @@ namespace gpio {
 
 enum class port_id : std::uint8_t { none = 0, a, b, c, d, e, f, g, h, i, j, k };
 enum class active_level : std::uint8_t { low = 0, high = 1 };
-enum class input : std::uint8_t { bmi088_gyro_drdy = 0 };
-enum class output : std::uint8_t { bmi088_acc_cs = 0, bmi088_gyro_cs = 1 };
+enum class input : std::uint8_t { bmi088_gyro_drdy = 0, ps2_data = 1 };
+enum class output : std::uint8_t { bmi088_acc_cs = 0, bmi088_gyro_cs = 1, ps2_cs = 2, ps2_cmd = 3, ps2_clk = 4 };
 
 struct input_config { port_id port; std::uint8_t pin; active_level active; };
 struct output_config { port_id port; std::uint8_t pin; active_level active; };
 
-inline constexpr std::size_t input_count = 1;
-inline constexpr std::size_t output_count = 2;
-inline constexpr std::array<input_config, input_count> input_configs = {{ { port_id::e, 12U, active_level::high } }};
-inline constexpr std::array<output_config, output_count> output_configs = {{ { port_id::c, 0U, active_level::low }, { port_id::c, 3U, active_level::low } }};
+inline constexpr std::size_t input_count = 2;
+inline constexpr std::size_t output_count = 5;
+inline constexpr std::array<input_config, input_count> input_configs = {{ { port_id::e, 12U, active_level::high }, { port_id::e, 9U, active_level::high } }};
+inline constexpr std::array<output_config, output_count> output_configs = {{ { port_id::c, 0U, active_level::low }, { port_id::c, 3U, active_level::low }, { port_id::a, 0U, active_level::low }, { port_id::e, 13U, active_level::high }, { port_id::a, 2U, active_level::high } }};
 
 } // namespace gpio
 
@@ -174,7 +180,7 @@ inline constexpr bsp::usart::port usart10 = 3;
 
 inline constexpr bsp::usart::port dr16 = uart5;
 inline constexpr bsp::usart::port vt03 = uart7;
-inline constexpr bsp::usart::port ps2 = uart5;
+inline constexpr bsp::usart::port ps2_uart = uart5;
 inline constexpr bsp::usart::port referee = usart1;
 inline constexpr bsp::usart::port test_report = uart7;
 
@@ -183,8 +189,12 @@ inline constexpr bsp::usart::port test_report = uart7;
 namespace gpio {
 
 inline constexpr bsp::gpio::input bmi088_gyro_drdy = bsp::gpio::input::bmi088_gyro_drdy;
+inline constexpr bsp::gpio::input ps2_data = bsp::gpio::input::ps2_data;
 inline constexpr bsp::gpio::output bmi088_acc_cs = bsp::gpio::output::bmi088_acc_cs;
 inline constexpr bsp::gpio::output bmi088_gyro_cs = bsp::gpio::output::bmi088_gyro_cs;
+inline constexpr bsp::gpio::output ps2_cs = bsp::gpio::output::ps2_cs;
+inline constexpr bsp::gpio::output ps2_cmd = bsp::gpio::output::ps2_cmd;
+inline constexpr bsp::gpio::output ps2_clk = bsp::gpio::output::ps2_clk;
 
 } // namespace gpio
 
@@ -222,6 +232,12 @@ inline constexpr bsp::pwm::channel heater = bsp::pwm::channel::tim3_ch4;
 namespace led {
 inline constexpr bsp::spi::bus spi = bsp::spi::bus::spi6;
 } // namespace led
+namespace ps2 {
+inline constexpr bsp::gpio::output cmd = bsp::gpio::output::ps2_cmd;
+inline constexpr bsp::gpio::input data = bsp::gpio::input::ps2_data;
+inline constexpr bsp::gpio::output clk = bsp::gpio::output::ps2_clk;
+inline constexpr bsp::gpio::output cs = bsp::gpio::output::ps2_cs;
+} // namespace ps2
 } // namespace board::device
 
 namespace params::ahrs {
@@ -244,9 +260,9 @@ namespace params::remoter {
   inline constexpr std::uint32_t thread_priority = 2;
   inline constexpr std::uint32_t rx_timeout_ticks = 100;
   inline constexpr std::uint32_t offline_timeout_ticks = 120;
-  inline constexpr std::uint32_t ps2_offline_timeout_ticks = 600;
-  inline constexpr std::uint32_t ps2_frame_timeout_ticks = 20;
-  inline constexpr float ps2_deadzone = 0.08f;
+  inline constexpr std::uint32_t ps2_uart_offline_timeout_ticks = 600;
+  inline constexpr std::uint32_t ps2_uart_frame_timeout_ticks = 20;
+  inline constexpr float ps2_uart_deadzone = 0.08f;
 } // namespace params::remoter
 
 namespace params::referee {

@@ -1,5 +1,6 @@
 // Generated from board/board.ioc. Do not edit.
 
+#include "bsp_bindings.hpp"
 #include "bsp_adc.hpp"
 #include "bsp_pwm.hpp"
 #include "bsp_spi.hpp"

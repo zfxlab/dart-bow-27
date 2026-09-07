@@ -266,9 +266,6 @@ if(gpio_output_count GREATER 0)
             "inline constexpr bsp::gpio::output ${role_ident} = bsp::gpio::output::${role_ident}${generated_semicolon_token}\n")
     endforeach()
 endif()
-list(JOIN gpio_input_config_list ", " gpio_input_config_cpp)
-list(JOIN gpio_output_config_list ", " gpio_output_config_cpp)
-
 # --- Board device bindings and feature availability ---
 string(JSON board_bmi088_enabled ERROR_VARIABLE json_err GET "${board_json}" devices bmi088 enabled)
 if(json_err)
@@ -324,6 +321,136 @@ else()
     set(HAS_LED 0)
 endif()
 
+# PS2 uses params.json for its compile-time backend and pins. The IOC remains
+# authoritative for the GPIO directions and SPI peripheral configuration.
+set(HAS_PS2_DEVICE 0)
+set(PS2_BACKEND_SPI 0)
+set(PS2_BACKEND_GPIO 0)
+set(ps2_spi "")
+set(ps2_cmd "ps2_cmd")
+set(ps2_data "ps2_data")
+set(ps2_clk "ps2_clk")
+set(ps2_cs "ps2_cs")
+string(JSON params_ps2_enabled ERROR_VARIABLE json_err GET "${params_json}" ps2 enabled)
+if(json_err)
+    set(params_ps2_enabled "false")
+endif()
+_pnx_json_bool_to_cmake("${params_ps2_enabled}" PARAMS_HAS_PS2_DEVICE)
+if(PARAMS_HAS_PS2_DEVICE)
+    string(JSON ps2_backend ERROR_VARIABLE json_err GET "${params_json}" ps2 backend)
+    if(json_err)
+        message(FATAL_ERROR "params.ps2 requires backend (spi or gpio)")
+    endif()
+    string(TOLOWER "${ps2_backend}" ps2_backend)
+
+    if(ps2_backend STREQUAL "spi")
+        string(JSON ps2_spi GET "${params_json}" ps2 spi)
+        string(TOLOWER "${ps2_spi}" ps2_spi)
+        pnx_ioc_hw_in_list("${PNX_IOC_SPI_HW}" "${ps2_spi}" ps2_spi_present)
+        if(NOT ps2_spi_present)
+            message(FATAL_ERROR "params.ps2 SPI binding requires ${ps2_spi}, which is absent from the IOC")
+        endif()
+        string(TOUPPER "${ps2_spi}" ps2_spi_upper)
+        pnx_ioc_get_value("${PNX_IOC_LINES}" "${ps2_spi_upper}.Mode" ps2_spi_mode)
+        pnx_ioc_get_value("${PNX_IOC_LINES}" "${ps2_spi_upper}.Direction" ps2_spi_direction)
+        pnx_ioc_get_value("${PNX_IOC_LINES}" "${ps2_spi_upper}.CLKPolarity" ps2_spi_polarity)
+        pnx_ioc_get_value("${PNX_IOC_LINES}" "${ps2_spi_upper}.CLKPhase" ps2_spi_phase)
+        pnx_ioc_get_value("${PNX_IOC_LINES}" "${ps2_spi_upper}.FirstBit" ps2_spi_first_bit)
+        if(NOT ps2_spi_mode STREQUAL "SPI_MODE_MASTER" OR
+           NOT ps2_spi_direction STREQUAL "SPI_DIRECTION_2LINES" OR
+           NOT ps2_spi_polarity STREQUAL "SPI_POLARITY_HIGH" OR
+           NOT ps2_spi_phase STREQUAL "SPI_PHASE_2EDGE" OR
+           NOT ps2_spi_first_bit STREQUAL "SPI_FIRSTBIT_LSB")
+            message(FATAL_ERROR
+                "params.ps2 SPI ${ps2_spi} must be CubeMX Master, 2-line, Mode 3, LSB first")
+        endif()
+        set(PS2_BACKEND_SPI 1)
+    elseif(ps2_backend STREQUAL "gpio")
+        set(PS2_BACKEND_GPIO 1)
+    else()
+        message(FATAL_ERROR "params.ps2.backend must be spi or gpio")
+    endif()
+
+    # CS is software GPIO in both backends. CMD/CLK/DATA are additionally
+    # generated for the GPIO backend. These semantic roles intentionally do
+    # not live in board.json.
+    set(ps2_output_names cs)
+    if(PS2_BACKEND_GPIO)
+        list(APPEND ps2_output_names cmd clk)
+    endif()
+    foreach(ps2_output_name IN LISTS ps2_output_names)
+        string(JSON ps2_output_pin ERROR_VARIABLE json_err GET "${params_json}" ps2 ${ps2_output_name})
+        if(json_err)
+            message(FATAL_ERROR "params.ps2.${ps2_output_name} must name a GPIO pin")
+        endif()
+        string(TOLOWER "${ps2_output_pin}" ps2_output_pin)
+        if(NOT ps2_output_pin MATCHES "^p([a-k])([0-9]|1[0-5])$")
+            message(FATAL_ERROR "params.ps2.${ps2_output_name} has invalid pin '${ps2_output_pin}'")
+        endif()
+        set(ps2_output_port "${CMAKE_MATCH_1}")
+        set(ps2_output_number "${CMAKE_MATCH_2}")
+        string(TOUPPER "${ps2_output_pin}" ps2_output_pin_upper)
+        pnx_ioc_get_value("${PNX_IOC_LINES}" "${ps2_output_pin_upper}.Signal" ps2_output_signal)
+        if(ps2_output_signal STREQUAL "")
+            pnx_ioc_get_value("${PNX_IOC_LINES}" "${ps2_output_pin_upper}_C.Signal" ps2_output_signal)
+        endif()
+        if(NOT ps2_output_signal STREQUAL "GPIO_Output")
+            message(FATAL_ERROR "params.ps2.${ps2_output_name} pin ${ps2_output_pin} is not an IOC output")
+        endif()
+        if(ps2_output_name STREQUAL "cs")
+            set(ps2_output_active_level low)
+        else()
+            set(ps2_output_active_level high)
+        endif()
+        set(ps2_output_role "ps2_${ps2_output_name}")
+        list(LENGTH gpio_output_config_list ps2_output_index)
+        list(APPEND gpio_output_config_list
+            "{ port_id::${ps2_output_port}, ${ps2_output_number}U, active_level::${ps2_output_active_level} }")
+        if(NOT gpio_output_enum_entries STREQUAL "")
+            string(APPEND gpio_output_enum_entries ", ")
+        endif()
+        string(APPEND gpio_output_enum_entries "${ps2_output_role} = ${ps2_output_index}")
+        string(APPEND gpio_output_binding_body
+            "inline constexpr bsp::gpio::output ${ps2_output_role} = bsp::gpio::output::${ps2_output_role}${generated_semicolon_token}\n")
+    endforeach()
+
+    if(PS2_BACKEND_GPIO)
+        string(JSON ps2_data_pin ERROR_VARIABLE json_err GET "${params_json}" ps2 data)
+        if(json_err)
+            message(FATAL_ERROR "params.ps2.data must name a GPIO pin")
+        endif()
+        string(TOLOWER "${ps2_data_pin}" ps2_data_pin)
+        if(NOT ps2_data_pin MATCHES "^p([a-k])([0-9]|1[0-5])$")
+            message(FATAL_ERROR "params.ps2.data has invalid pin '${ps2_data_pin}'")
+        endif()
+        set(ps2_data_port "${CMAKE_MATCH_1}")
+        set(ps2_data_number "${CMAKE_MATCH_2}")
+        string(TOUPPER "${ps2_data_pin}" ps2_data_pin_upper)
+        pnx_ioc_get_value("${PNX_IOC_LINES}" "${ps2_data_pin_upper}.Signal" ps2_data_signal)
+        if(ps2_data_signal STREQUAL "")
+            pnx_ioc_get_value("${PNX_IOC_LINES}" "${ps2_data_pin_upper}_C.Signal" ps2_data_signal)
+        endif()
+        if(NOT ps2_data_signal STREQUAL "GPIO_Input")
+            message(FATAL_ERROR "params.ps2.data pin ${ps2_data_pin} is not an IOC input")
+        endif()
+        list(LENGTH gpio_input_config_list ps2_data_index)
+        list(APPEND gpio_input_config_list
+            "{ port_id::${ps2_data_port}, ${ps2_data_number}U, active_level::high }")
+        if(NOT gpio_input_enum_entries STREQUAL "")
+            string(APPEND gpio_input_enum_entries ", ")
+        endif()
+        string(APPEND gpio_input_enum_entries "ps2_data = ${ps2_data_index}")
+        string(APPEND gpio_input_binding_body
+            "inline constexpr bsp::gpio::input ps2_data = bsp::gpio::input::ps2_data${generated_semicolon_token}\n")
+    endif()
+    set(HAS_PS2_DEVICE 1)
+endif()
+
+list(JOIN gpio_input_config_list ", " gpio_input_config_cpp)
+list(JOIN gpio_output_config_list ", " gpio_output_config_cpp)
+list(LENGTH gpio_input_config_list gpio_input_count)
+list(LENGTH gpio_output_config_list gpio_output_count)
+
 pnx_ioc_hw_in_list("${PNX_IOC_UART_HW}" "${remoter_uart}" remoter_uart_present)
 pnx_ioc_uart_has_dma("${PNX_IOC_LINES}" "${remoter_uart}" "RX" remoter_has_rx_dma)
 if(remoter_uart_present AND remoter_has_rx_dma)
@@ -331,7 +458,7 @@ if(remoter_uart_present AND remoter_has_rx_dma)
 else()
     set(HAS_REMOTER 0)
 endif()
-set(HAS_PS2 ${HAS_REMOTER})
+set(HAS_PS2_UART ${HAS_REMOTER})
 
 pnx_ioc_hw_in_list("${PNX_IOC_UART_HW}" "uart7" vt03_uart_present)
 pnx_ioc_uart_has_dma("${PNX_IOC_LINES}" "uart7" "RX" vt03_has_rx_dma)
@@ -359,14 +486,17 @@ if(remoter_source STREQUAL "")
         set(ENABLE_DR16 1)
         set(ENABLE_VT03 0)
         set(ENABLE_PS2 0)
+        set(ENABLE_PS2_UART 0)
     elseif(HAS_VT03)
         set(ENABLE_DR16 0)
         set(ENABLE_VT03 1)
         set(ENABLE_PS2 0)
+        set(ENABLE_PS2_UART 0)
     else()
         set(ENABLE_DR16 0)
         set(ENABLE_VT03 0)
         set(ENABLE_PS2 0)
+        set(ENABLE_PS2_UART 0)
     endif()
 elseif(remoter_source STREQUAL "dr16")
     if(NOT HAS_REMOTER)
@@ -375,6 +505,7 @@ elseif(remoter_source STREQUAL "dr16")
     set(ENABLE_DR16 1)
     set(ENABLE_VT03 0)
     set(ENABLE_PS2 0)
+    set(ENABLE_PS2_UART 0)
 elseif(remoter_source STREQUAL "vt03")
     if(NOT HAS_VT03)
         message(FATAL_ERROR "params.remoter.source=vt03 requires UART7 RX DMA support in board/board.ioc")
@@ -382,15 +513,25 @@ elseif(remoter_source STREQUAL "vt03")
     set(ENABLE_DR16 0)
     set(ENABLE_VT03 1)
     set(ENABLE_PS2 0)
+    set(ENABLE_PS2_UART 0)
 elseif(remoter_source STREQUAL "ps2")
-    if(NOT HAS_PS2)
-        message(FATAL_ERROR "params.remoter.source=ps2 requires the bound remoter UART to have RX DMA support in board/board.ioc")
+    if(NOT HAS_PS2_DEVICE)
+        message(FATAL_ERROR "params.remoter.source=ps2 requires params.ps2.enabled and valid PS2 pins")
     endif()
     set(ENABLE_DR16 0)
     set(ENABLE_VT03 0)
     set(ENABLE_PS2 1)
+    set(ENABLE_PS2_UART 0)
+elseif(remoter_source STREQUAL "ps2_uart")
+    if(NOT HAS_PS2_UART)
+        message(FATAL_ERROR "params.remoter.source=ps2_uart requires the bound remoter UART to have RX DMA support in board/board.ioc")
+    endif()
+    set(ENABLE_DR16 0)
+    set(ENABLE_VT03 0)
+    set(ENABLE_PS2 0)
+    set(ENABLE_PS2_UART 1)
 else()
-    message(FATAL_ERROR "params.remoter.source must be one of: dr16, vt03, ps2")
+    message(FATAL_ERROR "params.remoter.source must be one of: dr16, vt03, ps2, ps2_uart")
 endif()
 
 list(LENGTH PNX_IOC_FDCAN_HW fdcan_count)
@@ -621,7 +762,7 @@ list(JOIN usart_config_list ", " usart_config_cpp)
 list(LENGTH PNX_IOC_UART_HW usart_port_count)
 
 # --- params.json: application UART bindings ---
-set(uart_reserved_roles dr16 vt03 ps2 referee test_report)
+set(uart_reserved_roles dr16 vt03 ps2_uart referee test_report)
 foreach(hw ${PNX_IOC_UART_HW})
     string(TOLOWER "${hw}" hw_lower)
     list(APPEND uart_reserved_roles "${hw_lower}")
@@ -740,6 +881,21 @@ if(BOARD_HAS_LED)
         "inline constexpr bsp::spi::bus spi = bsp::spi::bus::${led_spi}${generated_semicolon_token}\n"
         "} // namespace led\n")
 endif()
+if(HAS_PS2_DEVICE)
+    string(APPEND board_device_binding_body "namespace ps2 {\n")
+    if(PS2_BACKEND_SPI)
+        string(APPEND board_device_binding_body
+            "inline constexpr bsp::spi::bus spi = bsp::spi::bus::${ps2_spi}${generated_semicolon_token}\n"
+            "inline constexpr bsp::gpio::output cs = bsp::gpio::output::${ps2_cs}${generated_semicolon_token}\n")
+    else()
+        string(APPEND board_device_binding_body
+            "inline constexpr bsp::gpio::output cmd = bsp::gpio::output::${ps2_cmd}${generated_semicolon_token}\n"
+            "inline constexpr bsp::gpio::input data = bsp::gpio::input::${ps2_data}${generated_semicolon_token}\n"
+            "inline constexpr bsp::gpio::output clk = bsp::gpio::output::${ps2_clk}${generated_semicolon_token}\n"
+            "inline constexpr bsp::gpio::output cs = bsp::gpio::output::${ps2_cs}${generated_semicolon_token}\n")
+    endif()
+    string(APPEND board_device_binding_body "} // namespace ps2\n")
+endif()
 
 set(pwm_channel_config_list "")
 set(pwm_channel_enum_entries "")
@@ -855,7 +1011,7 @@ if(adc_app_binding_count GREATER 0)
 endif()
 
 pnx_ioc_uart_index("${PNX_IOC_UART_HW}" "${remoter_uart}" dr16_port_idx)
-pnx_ioc_uart_index("${PNX_IOC_UART_HW}" "${remoter_uart}" ps2_port_idx)
+pnx_ioc_uart_index("${PNX_IOC_UART_HW}" "${remoter_uart}" ps2_uart_port_idx)
 pnx_ioc_uart_index("${PNX_IOC_UART_HW}" "uart7" vt03_port_idx)
 pnx_ioc_uart_index("${PNX_IOC_UART_HW}" "${referee_uart}" referee_port_idx)
 
@@ -869,10 +1025,10 @@ if(vt03_port_idx GREATER_EQUAL 0)
 else()
     set(vt03_binding "0")
 endif()
-if(ps2_port_idx GREATER_EQUAL 0)
-    set(ps2_binding "${remoter_uart}")
+if(ps2_uart_port_idx GREATER_EQUAL 0)
+    set(ps2_uart_binding "${remoter_uart}")
 else()
-    set(ps2_binding "0")
+    set(ps2_uart_binding "0")
 endif()
 if(referee_port_idx GREATER_EQUAL 0)
     set(referee_binding "${referee_uart}")
@@ -885,7 +1041,7 @@ if(ENABLE_DR16)
     set(active_remoter_uart "${remoter_uart}")
 elseif(ENABLE_VT03)
     set(active_remoter_uart "uart7")
-elseif(ENABLE_PS2)
+elseif(ENABLE_PS2_UART)
     set(active_remoter_uart "${remoter_uart}")
 endif()
 
@@ -1016,19 +1172,19 @@ if(_line STREQUAL "")
     set(_line "  inline constexpr std::uint32_t offline_timeout_ticks = 120${generated_semicolon_token}\n")
 endif()
 string(APPEND params_remoter_body "${_line}")
-_pnx_param_uint("remoter" "ps2_offline_timeout_ticks" _line)
+_pnx_param_uint("remoter" "ps2_uart_offline_timeout_ticks" _line)
 if(_line STREQUAL "")
-    set(_line "  inline constexpr std::uint32_t ps2_offline_timeout_ticks = 600${generated_semicolon_token}\n")
+    set(_line "  inline constexpr std::uint32_t ps2_uart_offline_timeout_ticks = 600${generated_semicolon_token}\n")
 endif()
 string(APPEND params_remoter_body "${_line}")
-_pnx_param_uint("remoter" "ps2_frame_timeout_ticks" _line)
+_pnx_param_uint("remoter" "ps2_uart_frame_timeout_ticks" _line)
 if(_line STREQUAL "")
-    set(_line "  inline constexpr std::uint32_t ps2_frame_timeout_ticks = 20${generated_semicolon_token}\n")
+    set(_line "  inline constexpr std::uint32_t ps2_uart_frame_timeout_ticks = 20${generated_semicolon_token}\n")
 endif()
 string(APPEND params_remoter_body "${_line}")
-_pnx_param_float("remoter" "ps2_deadzone" _line)
+_pnx_param_float("remoter" "ps2_uart_deadzone" _line)
 if(_line STREQUAL "")
-    set(_line "  inline constexpr float ps2_deadzone = 0.08f${generated_semicolon_token}\n")
+    set(_line "  inline constexpr float ps2_uart_deadzone = 0.08f${generated_semicolon_token}\n")
 endif()
 string(APPEND params_remoter_body "${_line}")
 
@@ -1103,6 +1259,7 @@ file(MAKE_DIRECTORY "${OUT_DIR}")
 set(CONFIG_HPP "${OUT_DIR}/config.hpp")
 set(ROBOT_CONFIG_HPP "${OUT_DIR}/robot_config.hpp")
 set(BSP_BINDINGS_CPP "${OUT_DIR}/bsp_bindings.cpp")
+set(BSP_BINDINGS_HPP "${OUT_DIR}/bsp_bindings.hpp")
 
 file(WRITE "${CONFIG_HPP}"
 "#pragma once\n"
@@ -1117,10 +1274,14 @@ file(WRITE "${CONFIG_HPP}"
 "#define HAS_DMIMU ${HAS_DMIMU}\n"
 "#define HAS_REMOTER ${HAS_REMOTER}\n"
 "#define HAS_VT03 ${HAS_VT03}\n"
-"#define HAS_PS2 ${HAS_PS2}\n"
+"#define HAS_PS2_DEVICE ${HAS_PS2_DEVICE}\n"
+"#define PS2_BACKEND_SPI ${PS2_BACKEND_SPI}\n"
+"#define PS2_BACKEND_GPIO ${PS2_BACKEND_GPIO}\n"
+"#define HAS_PS2_UART ${HAS_PS2_UART}\n"
 "#define ENABLE_DR16 ${ENABLE_DR16}\n"
 "#define ENABLE_VT03 ${ENABLE_VT03}\n"
 "#define ENABLE_PS2 ${ENABLE_PS2}\n"
+"#define ENABLE_PS2_UART ${ENABLE_PS2_UART}\n"
 "#define HAS_REFEREE ${HAS_REFEREE}\n"
 "#define HAS_UI ${HAS_UI}\n"
 "#define HAS_LED ${HAS_LED}\n"
@@ -1139,10 +1300,12 @@ file(WRITE "${CONFIG_HPP}"
 "inline constexpr bool has_dmimu = ${HAS_DMIMU};\n"
 "inline constexpr bool has_remoter = ${HAS_REMOTER};\n"
 "inline constexpr bool has_vt03 = ${HAS_VT03};\n"
-"inline constexpr bool has_ps2 = ${HAS_PS2};\n"
+"inline constexpr bool has_ps2_device = ${HAS_PS2_DEVICE};\n"
+"inline constexpr bool has_ps2_uart = ${HAS_PS2_UART};\n"
 "inline constexpr bool enable_dr16 = ${ENABLE_DR16};\n"
 "inline constexpr bool enable_vt03 = ${ENABLE_VT03};\n"
 "inline constexpr bool enable_ps2 = ${ENABLE_PS2};\n"
+"inline constexpr bool enable_ps2_uart = ${ENABLE_PS2_UART};\n"
 "inline constexpr bool has_referee = ${HAS_REFEREE};\n"
 "inline constexpr bool has_ui = ${HAS_UI};\n"
 "inline constexpr bool has_led = ${HAS_LED};\n"
@@ -1239,7 +1402,7 @@ file(WRITE "${CONFIG_HPP}"
 "${uart_app_binding_body}"
 "inline constexpr bsp::usart::port dr16 = ${dr16_binding};\n"
 "inline constexpr bsp::usart::port vt03 = ${vt03_binding};\n"
-"inline constexpr bsp::usart::port ps2 = ${ps2_binding};\n"
+"inline constexpr bsp::usart::port ps2_uart = ${ps2_uart_binding};\n"
 "inline constexpr bsp::usart::port referee = ${referee_binding};\n"
 "inline constexpr bsp::usart::port test_report = ${test_report_binding};\n\n"
 "} // namespace uart\n"
@@ -1290,8 +1453,48 @@ file(WRITE "${CONFIG_HPP}" "${config_hpp_fixed}")
 
 message(STATUS "Generated ${CONFIG_HPP}")
 
+set(ps2_device_binding_body "")
+if(HAS_PS2_DEVICE)
+    if(PS2_BACKEND_SPI)
+        string(APPEND ps2_device_binding_body
+            "using ps2_transport = ps2_spi${generated_semicolon_token}\n\n"
+            "inline ps2& ps2_instance()\n"
+            "{\n"
+            "    static ps2_transport transport{board::device::ps2::spi, board::device::ps2::cs}${generated_semicolon_token}\n"
+            "    static ps2 controller{transport}${generated_semicolon_token}\n"
+            "    return controller${generated_semicolon_token}\n"
+            "}\n")
+    else()
+        string(APPEND ps2_device_binding_body
+            "using ps2_transport = ps2_gpio${generated_semicolon_token}\n\n"
+            "inline ps2& ps2_instance()\n"
+            "{\n"
+            "    static ps2_transport transport{board::device::ps2::cmd, board::device::ps2::data,\n"
+            "                                   board::device::ps2::clk, board::device::ps2::cs}${generated_semicolon_token}\n"
+            "    static ps2 controller{transport}${generated_semicolon_token}\n"
+            "    return controller${generated_semicolon_token}\n"
+            "}\n")
+    endif()
+endif()
+
+file(WRITE "${BSP_BINDINGS_HPP}"
+"#pragma once\n"
+"// Generated from board/board.ioc and configs/params.json. Do not edit.\n\n"
+"#include \"config.hpp\"\n\n"
+"#if HAS_PS2_DEVICE\n"
+"#include \"ps2.hpp\"\n\n"
+"namespace remoter::binding {\n\n"
+"${ps2_device_binding_body}"
+"} // namespace remoter::binding\n"
+"#endif // HAS_PS2_DEVICE\n")
+file(READ "${BSP_BINDINGS_HPP}" bsp_bindings_hpp_raw)
+string(REPLACE "${generated_semicolon_token}" ";" bsp_bindings_hpp_fixed "${bsp_bindings_hpp_raw}")
+file(WRITE "${BSP_BINDINGS_HPP}" "${bsp_bindings_hpp_fixed}")
+message(STATUS "Generated ${BSP_BINDINGS_HPP}")
+
 file(WRITE "${BSP_BINDINGS_CPP}"
 "// Generated from board/board.ioc. Do not edit.\n\n"
+"#include \"bsp_bindings.hpp\"\n"
 "#include \"bsp_adc.hpp\"\n"
 "#include \"bsp_pwm.hpp\"\n"
 "#include \"bsp_spi.hpp\"\n"

@@ -43,7 +43,7 @@ bool monitor_started = false;
 msg::subscriber remoter_sub{};
 msg::subscriber ps2_sub{};
 ULONG started_at = 0;
-::remoter::ps2_state latest_ps2{};
+::remoter::ps2_uart_state latest_ps2{};
 std::uint32_t ps2_raw_update_count = 0;
 bool ps2_mapping_pending = false;
 std::uint16_t pending_buttons = 0;
@@ -104,6 +104,19 @@ void map_vt03(const ::remoter::state& input)
     apply_command(command);
 }
 
+void map_ps2_uart(const ::remoter::state& input)
+{
+    user_command command{};
+    if (!input.offline && input.active_source == ::remoter::source::ps2_uart)
+    {
+        command.x = input.right_x;
+        command.y = input.right_y;
+        command.shoot = ::remoter::is_held(input.ps2_uart_buttons, ::remoter::ps2_uart_button::r1);
+        command.relax = ::remoter::is_held(input.ps2_uart_buttons, ::remoter::ps2_uart_button::select);
+    }
+    apply_command(command);
+}
+
 void map_ps2(const ::remoter::state& input)
 {
     user_command command{};
@@ -131,6 +144,10 @@ void map_ps2(const ::remoter::state& input)
     {
         return ::remoter::update_callback::bind<&map_ps2>();
     }
+    else if constexpr (::config::feature::enable_ps2_uart)
+    {
+        return ::remoter::update_callback::bind<&map_ps2_uart>();
+    }
     return {};
 }
 
@@ -143,38 +160,38 @@ std::uint16_t key_bits(const ::remoter::key_state& key) noexcept
 
 template <typename DebugState>
 void sync_ps2_debug(DebugState& state, const ::remoter::state& data,
-                    const ::remoter::ps2_state& ps2_data) noexcept
+                    const ::remoter::ps2_uart_state& ps2_data) noexcept
 {
-    if constexpr (static_cast<bool>(ENABLE_PS2))
+    if constexpr (static_cast<bool>(ENABLE_PS2_UART))
     {
         state.ps2_link = static_cast<std::uint32_t>(ps2_data.link);
-        state.ps2_buttons = data.ps2_buttons;
-        state.ps2_raw_buttons = ps2_data.data.ps2_buttons;
-        state.ps2_pressed = data.ps2_pressed;
-        state.ps2_released = data.ps2_released;
-        state.ps2_pressed_seen_mask |= data.ps2_pressed;
-        state.ps2_released_seen_mask |= data.ps2_released;
+        state.ps2_buttons = data.ps2_uart_buttons;
+        state.ps2_raw_buttons = ps2_data.data.ps2_uart_buttons;
+        state.ps2_pressed = data.ps2_uart_pressed;
+        state.ps2_released = data.ps2_uart_released;
+        state.ps2_pressed_seen_mask |= data.ps2_uart_pressed;
+        state.ps2_released_seen_mask |= data.ps2_uart_released;
         state.ps2_mapping_match =
-            !data.offline && data.active_source == ::remoter::source::ps2 &&
-            ps2_data.link == ::remoter::ps2_link_state::connected &&
-            data.ps2_buttons == ps2_data.data.ps2_buttons;
+            !data.offline && data.active_source == ::remoter::source::ps2_uart &&
+            ps2_data.link == ::remoter::ps2_uart_link_state::connected &&
+            data.ps2_uart_buttons == ps2_data.data.ps2_uart_buttons;
         state.ps2_mapping_pending = ps2_mapping_pending;
-        state.ps2_square = ::remoter::is_held(data.ps2_buttons, ::remoter::ps2_button::square);
-        state.ps2_cross = ::remoter::is_held(data.ps2_buttons, ::remoter::ps2_button::cross);
-        state.ps2_circle = ::remoter::is_held(data.ps2_buttons, ::remoter::ps2_button::circle);
-        state.ps2_triangle = ::remoter::is_held(data.ps2_buttons, ::remoter::ps2_button::triangle);
-        state.ps2_r1 = ::remoter::is_held(data.ps2_buttons, ::remoter::ps2_button::r1);
-        state.ps2_l1 = ::remoter::is_held(data.ps2_buttons, ::remoter::ps2_button::l1);
-        state.ps2_r2 = ::remoter::is_held(data.ps2_buttons, ::remoter::ps2_button::r2);
-        state.ps2_l2 = ::remoter::is_held(data.ps2_buttons, ::remoter::ps2_button::l2);
-        state.ps2_left = ::remoter::is_held(data.ps2_buttons, ::remoter::ps2_button::left);
-        state.ps2_down = ::remoter::is_held(data.ps2_buttons, ::remoter::ps2_button::down);
-        state.ps2_right = ::remoter::is_held(data.ps2_buttons, ::remoter::ps2_button::right);
-        state.ps2_up = ::remoter::is_held(data.ps2_buttons, ::remoter::ps2_button::up);
-        state.ps2_start = ::remoter::is_held(data.ps2_buttons, ::remoter::ps2_button::start);
-        state.ps2_r3 = ::remoter::is_held(data.ps2_buttons, ::remoter::ps2_button::r3);
-        state.ps2_l3 = ::remoter::is_held(data.ps2_buttons, ::remoter::ps2_button::l3);
-        state.ps2_select = ::remoter::is_held(data.ps2_buttons, ::remoter::ps2_button::select);
+        state.ps2_square = ::remoter::is_held(data.ps2_uart_buttons, ::remoter::ps2_uart_button::square);
+        state.ps2_cross = ::remoter::is_held(data.ps2_uart_buttons, ::remoter::ps2_uart_button::cross);
+        state.ps2_circle = ::remoter::is_held(data.ps2_uart_buttons, ::remoter::ps2_uart_button::circle);
+        state.ps2_triangle = ::remoter::is_held(data.ps2_uart_buttons, ::remoter::ps2_uart_button::triangle);
+        state.ps2_r1 = ::remoter::is_held(data.ps2_uart_buttons, ::remoter::ps2_uart_button::r1);
+        state.ps2_l1 = ::remoter::is_held(data.ps2_uart_buttons, ::remoter::ps2_uart_button::l1);
+        state.ps2_r2 = ::remoter::is_held(data.ps2_uart_buttons, ::remoter::ps2_uart_button::r2);
+        state.ps2_l2 = ::remoter::is_held(data.ps2_uart_buttons, ::remoter::ps2_uart_button::l2);
+        state.ps2_left = ::remoter::is_held(data.ps2_uart_buttons, ::remoter::ps2_uart_button::left);
+        state.ps2_down = ::remoter::is_held(data.ps2_uart_buttons, ::remoter::ps2_uart_button::down);
+        state.ps2_right = ::remoter::is_held(data.ps2_uart_buttons, ::remoter::ps2_uart_button::right);
+        state.ps2_up = ::remoter::is_held(data.ps2_uart_buttons, ::remoter::ps2_uart_button::up);
+        state.ps2_start = ::remoter::is_held(data.ps2_uart_buttons, ::remoter::ps2_uart_button::start);
+        state.ps2_r3 = ::remoter::is_held(data.ps2_uart_buttons, ::remoter::ps2_uart_button::r3);
+        state.ps2_l3 = ::remoter::is_held(data.ps2_uart_buttons, ::remoter::ps2_uart_button::l3);
+        state.ps2_select = ::remoter::is_held(data.ps2_uart_buttons, ::remoter::ps2_uart_button::select);
         state.ps2_raw_left_x = ps2_data.raw_left_x;
         state.ps2_raw_left_y = ps2_data.raw_left_y;
         state.ps2_raw_right_x = ps2_data.raw_right_x;
@@ -192,7 +209,7 @@ void sync_ps2_debug(DebugState& state, const ::remoter::state& data,
     }
 }
 
-void sync_debug(const ::remoter::state& data, const ::remoter::ps2_state& ps2_data,
+void sync_debug(const ::remoter::state& data, const ::remoter::ps2_uart_state& ps2_data,
                 std::uint32_t stages, bool timed_out) noexcept
 {
     auto& state = diagnose::debug::debug_instance.remoter_unit;
@@ -258,7 +275,7 @@ void monitor_entry(ULONG /*arg*/)
                            ps2_raw_subscriber_created | monitor_thread_started;
     for (;;)
     {
-        ::remoter::ps2_state ps2_data{};
+        ::remoter::ps2_uart_state ps2_data{};
         if (msg::read(ps2_sub, ps2_data) == types::status::ok)
         {
             if (ps2_data.frame_count != previous_frame_count)
@@ -278,11 +295,11 @@ void monitor_entry(ULONG /*arg*/)
             }
 
             if (!ps2_data.data.offline &&
-                (ps2_data.data.ps2_pressed != 0U || ps2_data.data.ps2_released != 0U))
+                (ps2_data.data.ps2_uart_pressed != 0U || ps2_data.data.ps2_uart_released != 0U))
             {
-                pending_buttons = ps2_data.data.ps2_buttons;
-                pending_pressed = ps2_data.data.ps2_pressed;
-                pending_released = ps2_data.data.ps2_released;
+                pending_buttons = ps2_data.data.ps2_uart_buttons;
+                pending_pressed = ps2_data.data.ps2_uart_pressed;
+                pending_released = ps2_data.data.ps2_uart_released;
                 pending_event_tick = ps2_data.last_signal_tick;
                 ps2_mapping_pending = true;
             }
@@ -297,8 +314,8 @@ void monitor_entry(ULONG /*arg*/)
             stages |= data_received;
         }
 
-        if (ps2_mapping_pending && data.ps2_buttons == pending_buttons &&
-            data.ps2_pressed == pending_pressed && data.ps2_released == pending_released)
+        if (ps2_mapping_pending && data.ps2_uart_buttons == pending_buttons &&
+            data.ps2_uart_pressed == pending_pressed && data.ps2_uart_released == pending_released)
         {
             ps2_last_button_latency_ticks =
                 static_cast<std::uint32_t>(tx_time_get()) - pending_event_tick;
@@ -358,9 +375,9 @@ void start() noexcept
         return;
     }
 
-    if constexpr (::config::feature::enable_ps2)
+    if constexpr (::config::feature::enable_ps2_uart)
     {
-        ps2_sub = msg::subscribe(::remoter::ps2::instance().output());
+        ps2_sub = msg::subscribe(::remoter::ps2_uart::instance().output());
         if (!ps2_sub.valid())
         {
             state.failure_mask = ps2_raw_subscribe_failed;
