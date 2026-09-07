@@ -1,7 +1,7 @@
 #include "demo_debug.hpp"
 
 extern "C" {
-diagnose::debug::debug_instance_type {};
+diagnose::debug::debug_instance_type demo_debug_instance{};
 }
 
 namespace diagnose::debug
