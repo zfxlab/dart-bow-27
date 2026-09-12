@@ -113,9 +113,10 @@ pnx_template中已经写好了大部分常用的 .json 配置，
 
 #TODO：`test.thread_priority` 和 `test.auto_run_on_boot` 当前会生成到 `config.hpp`，但仓库内没有运行代码读取它们；修改这两个字段目前不会改变运行行为。
 
-`test.gpio_leds=true` 仅用于启用板级 RGB GPIO 诊断。它要求 `board.json`
-提供 `led_r`、`led_g`、`led_b` 三个逻辑输出角色；F407 profile 将它们映射到
-PH12、PH11、PH10。该字段不改变 IOC 的引脚配置。
+`test.gpio_leds=true` 启用可选 GPIO 输出测试（保留原字段名兼容配置）。
+在 `bindings.gpio_outputs.test_gpio` 中选择 board.json 已声明的输出角色，
+测试每半秒交替设置有效/无效状态。无需三个 LED，不改变 IOC 引脚配置。
+例如 F4 可设置 `"test_gpio": "led_r"`。H7 也使用同一方式，需先有适合测试的板级输出角色；SPI 灯不属于 GPIO 输出测试。
 
 # 快速查找
 

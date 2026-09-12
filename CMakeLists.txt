@@ -187,6 +187,11 @@ if(NOT ENABLE_MOTOR_TEST)
     list(FILTER PNX_EMBEDDED_SOURCES EXCLUDE REGEX "[/\\\\]diagnose[/\\\\]motor[/\\\\]")
 endif()
 
+# The LED device is the SPI WS2812 consumer. GPIO indicators use BSP GPIO.
+if(NOT HAS_LED)
+    list(FILTER PNX_EMBEDDED_SOURCES EXCLUDE REGEX "/pnx_devices/led/")
+endif()
+
 if(NOT HAS_BMI088)
     list(FILTER PNX_EMBEDDED_SOURCES EXCLUDE REGEX "[/\\\\]pnx_devices[/\\\\]imu[/\\\\]bmi088[/\\\\]")
 endif()

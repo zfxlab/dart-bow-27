@@ -156,6 +156,21 @@ Forbidden in `board.json`:
 
 ## Current migration state
 
+GPIO diagnosis now consumes app::gpio::test_gpio, selected by
+params.bindings.gpio_outputs.test_gpio from fixed board output roles.
+The legacy test.gpio_leds switch is retained; it no longer requires three
+LED roles. The output alternates active/inactive every 500 ms. GUI provides
+an add-binding search action. Both board builds and missing-alias checks
+pass; editor tests pass. No hardware test was performed.
+
+The pnx_devices/led implementation is the SPI WS2812 consumer, not a common
+GPIO/SPI LED backend. Parent CMake excludes its entire source directory when
+HAS_LED is false. Its functions contain no HAS_LED preprocessor branches,
+and the unused generated C++ macro has been removed. F4 indicator LEDs use
+configured GPIO roles directly through diagnose/gpio; no shared LED adapter
+or MCU-selection macros are introduced. Current application sources do not
+call the SPI LED API, so no additional call-site guards are needed.
+
 Configuration defaults now have one maintained source: configs/defaults.json.
 CMake merges common, board and user values by leaf. The editor bundles a
 build-time snapshot from that file; schema no longer duplicates defaults.

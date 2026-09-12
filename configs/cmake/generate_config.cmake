@@ -1367,14 +1367,12 @@ string(JSON test_gpio_leds ERROR_VARIABLE json_err GET "${params_json}" test gpi
 if(NOT json_err)
     _pnx_json_bool_to_cmake("${test_gpio_leds}" test_gpio_leds_enabled)
     if(test_gpio_leds_enabled)
-        foreach(gpio_test_role led_r led_g led_b)
-            string(JSON gpio_test_pin ERROR_VARIABLE json_err GET
-                "${board_json}" bindings gpio_outputs ${gpio_test_role} pin)
-            if(json_err OR gpio_test_pin STREQUAL "")
-                message(FATAL_ERROR
-                    "params.test.gpio_leds=true requires board GPIO output role '${gpio_test_role}'")
-            endif()
-        endforeach()
+        string(JSON gpio_test_role ERROR_VARIABLE json_err GET
+            "${params_json}" bindings gpio_outputs test_gpio)
+        if(json_err OR gpio_test_role STREQUAL "")
+            message(FATAL_ERROR
+                "params.test.gpio_leds=true requires bindings.gpio_outputs.test_gpio")
+        endif()
         set(ENABLE_GPIO_TEST 1)
     endif()
 endif()
@@ -1578,7 +1576,6 @@ _pnx_write_generated("${CONFIG_HPP}"
 "#define ENABLE_PS2_UART ${ENABLE_PS2_UART}\n"
 "#define HAS_REFEREE ${HAS_REFEREE}\n"
 "#define HAS_UI ${HAS_UI}\n"
-"#define HAS_LED ${HAS_LED}\n"
 "#define ENABLE_USART_TEST ${ENABLE_USART_TEST}\n"
 "#define ENABLE_CAN_TEST ${ENABLE_CAN_TEST}\n"
 "#define ENABLE_GPIO_TEST ${ENABLE_GPIO_TEST}\n"
