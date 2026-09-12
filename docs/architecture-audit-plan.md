@@ -148,22 +148,28 @@
 
 审计结束应得到一份按影响排序的短清单，而不是全面重写方案。修改时优先修复真实行为不一致，再改善命名和组织。除非另有明确需求，不增加运行时 MCU 抽象、设备注册中心、通用恢复状态机或多层配置框架。
 
-## ���ִ�м�¼��2026-09-12��
+## 审计执行记录（2026-09-12）
 
-### ��ǰ����
+### 环境与快照
 
-- ��ʱ�ύδ��ɣ������ܾ����� `.git/index.lock`��Permission denied��������޷��γ��ύ�㡣
-- �ѳ���ɾ�� `build/`���󲿷ֹ���Ŀ¼��ɾ������ `build/editor/initial...`��`build/editor/test...` �� `build/usb-v2/python/unicorn` �������ļ��ܾ�ɾ�������Ʊ�����ռ�û� ACL ���ơ�
-- ��δ�����Ĺ���Ŀ¼������ `tests/v2-validation/validate.py` ʱ��Ninja �� `failed recompaction: Permission denied`����֤����ǰ��֤������Ϊ�ɾ����������
+- 已创建临时检查点提交 `16c7783`（`wip: checkpoint before architecture audit`）。父仓库提交后仅保留 `pnx_devices`、`pnx_libs`、`pnx_modules` 三个子模块原有的内部未提交状态。
+- 已完整删除旧 `build/`，包括此前无法删除的 `build/editor` 与 `build/usb-v2/python/unicorn`。
+- 沙箱内首次从空目录运行时，CMake 的首个 `try_compile` 中 `ninja` 无 CPU 活动并持续挂起；终止后在已授权执行环境重跑，未再出现 `failed recompaction: Permission denied`。该挂起属于执行环境现象，不能据此判定仓库构建失败。
 
-### P0 ��������
+### P0 当前结论
 
-1. ˫��ɸ����ԣ�δͨ�����ա�ԭ���ǵ�ǰ�����޷�����ύ���գ��Ҳ�������Ŀ¼��Ӱ�� Ninja �����ɣ���Ҫ�ڿ�д Git Ԫ���ݺ͸ɾ� build Ŀ¼�Ļ������ܡ�
-2. ���ñջ������о���ű��͸�������ڣ���������δȡ�øɾ����������ݲ��ж�ͨ����ʧ�ܡ�
-3. ���״̬���壺AGENTS.md ���г� `started`��`ready`��`update_count` �ȷ��յ㣬��������δ������ֶδ���׷�٣��ݲ������϶�Ϊȱ�ݡ�
+1. 双板构建矩阵通过：使用 `pnx_bsp` 的 `refactor/V2-h7` 和 `.worktrees/pnx_bsp-f4` 的 `refactor/V2-f4`，从清理后的构建目录运行完整 Debug 矩阵，16 个镜像和 8 个预期失败检查全部通过。汇总见 `build/v2-validation/Debug/results.json`，共 24 条通过记录。
+2. BSP 匹配检查有效：未显式提供 F4 BSP 路径时，F4 配置明确拒绝 H7 BSP，并提示选择匹配分支或使用 `PNX_BSP_SOURCE_DIR`。因此普通单工作树默认路径不能独立完成两板矩阵；双 BSP 验证需明确传入 `--h7-bsp` 与 `--f4-bsp`。
+3. 配置闭环仅完成构建侧验证：`minimal`、UART、CAN、USB 开关、BMI088 关闭、两种 AHRS solver 与缺失依赖检查均通过，但尚未完成从启动入口到运行时观测字段的逐项代码追踪，不能据此宣称硬件或运行时行为通过。
+4. 诊断状态语义仍待审计：`started`、`ready`、`passed` 与各类计数器的生产者、刷新条件和失效含义尚未逐字段核对，暂不认定为缺陷或通过项。
 
-### ��һ��
+### 复现命令与下一步
 
-- �ͷ�ռ�� `build/editor` �� `build/usb-v2/python/unicorn` �Ľ��̺���ɾ����Ŀ¼��
-- �ڸɾ�Ŀ¼�������� `tests/v2-validation/validate.py`��������־��
-- ׷�� USBX��ң������referee��BMI088��AHRS��DMIMU��motor��LED��UART/CAN/GPIO test �� JSON �� CMake��������ںͿɹ۲�����
+```powershell
+python tests/v2-validation/validate.py `
+  --h7-bsp pnx_bsp `
+  --f4-bsp .worktrees/pnx_bsp-f4
+```
+
+- 追踪 USBX、遥控器、referee、BMI088、AHRS、DMIMU、motor、LED、UART/CAN/GPIO test 从 JSON、默认值合并、生成符号、CMake 源文件选择到启动入口和可观测结果。
+- 将每个诊断状态字段区分为初始化结果、线程存活、数据更新和测试结论，并记录无法由软件构建证明的硬件验证项。
