@@ -14,9 +14,9 @@
   -> app_start()
 ```
 
-`App_ThreadX_Init()` 位于 `board/Core/Src/app_threadx.c`，它在 ThreadX 内核启动后调用 `app_start()`。
+`App_ThreadX_Init()` 与 `MX_ThreadX_Init()` 由所选板的 `Core/Src/app_threadx.c` 实现并参与编译。两板在 USER CODE 区调用 `app/app.cpp` 的 `app_start()`；CubeMX 外设初始化和 `tx_application_define` 保持不变。
 
-当前仓库的 `app_start()` 实际调用 `diagnose_start()`，用于启动诊断模块。开始写机器人程序时，把这里替换成自己的应用入口即可。
+当前 `app_start()` 仅在 `test.auto_run_on_boot=true` 时调用 `diagnose_start()`。机器人业务在 `app/` 中组织；不要把永久业务循环放入 ThreadX 初始化回调。
 
 ## 从哪里开始写
 
@@ -38,6 +38,8 @@ extern "C" void app_start()
 - 不要在 `main()` 或 `app_threadx.c` 里加入机器人业务逻辑。
 - 不要在 ThreadX 启动前使用依赖 HAL 外设的模块。
 - 回调、线程控制块、线程栈以及仍被模块使用的配置对象，必须保持有效的生命周期。
-- 修改 `board.ioc` 后，先重新生成 CubeMX 板级代码，再执行 CMake configure 和 build。
+- 修改 `boards/<board>/<board>.ioc` 后，先重新生成该板 CubeMX 代码，再执行 CMake configure 和 build。
 
 相关内容：[`项目结构`](project-structure.md)、[`配置`](configuration.md)、[`创建应用线程`](thread.md)。
+
+Current authoritative startup ownership and CMake review: [architecture review](cmake-architecture-review.md). ThreadX entries reside in board Core/Src/app_threadx.c; app/app.cpp owns app_start only.

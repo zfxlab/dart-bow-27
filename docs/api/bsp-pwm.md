@@ -21,6 +21,29 @@
 
 这是 `board.json` 中的配置片段；应用代码只使用生成的 `app::pwm::servo`。
 
+对必须在控制线程停止或调试断点时自动归零的输出，可以给 PWM
+角色绑定一个独立的 failsafe timer：
+
+```json
+{
+  "bindings": {
+    "pwm_channels": {
+      "protected_output": {
+        "timer": "tim3",
+        "channel": 4,
+        "failsafe_timer": "tim6"
+      }
+    }
+  }
+}
+```
+
+`failsafe_timer` 必须在 IOC 中配置 Update DMA；它不能与 PWM 输出使用同一个
+timer，也不能同时保护多个 PWM 角色。它的预分频、周期、DMA stream/channel/request
+均由 IOC 管理，当前通用安全上限为 250 ms。每次设置非零占空比或脉宽时，BSP 会自动刷新 failsafe；超时后 DMA
+直接向受保护通道的 CCR 写零，不需要 CPU 或中断执行。应用和设备层不需要调用额外的
+续租接口。
+
 ```cpp
 // 使用片段：启动配置为舵机输出的 PWM 并输出 50% 占空比
 #include "bsp_pwm.hpp"

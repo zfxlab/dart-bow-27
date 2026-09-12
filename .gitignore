@@ -1,10 +1,12 @@
 .venv/
 .vscode/
 .agents/
+.worktrees/
 .settings/
 .idea/
 
 build/
+configs/generated/
 cmake-build-*/
 out/
 __pycache__/

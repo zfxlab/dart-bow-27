@@ -1,0 +1,60 @@
+{
+  "name": "f407_c_board",
+  "mcu_family": "stm32f4",
+  "memory": {
+    "dma_policy": "default",
+    "cache_line_size": 1,
+    "dma_accessible_ranges": [
+      {
+        "start": "0x20000000",
+        "end": "0x20020000"
+      }
+    ]
+  },
+  "bindings": {
+    "gpio_inputs": {
+        "bmi088_gyro_drdy": {
+        "pin": "pc5",
+        "active_level": "high"
+      }
+    },
+    "gpio_outputs": {
+        "bmi088_acc_cs": {
+        "pin": "pa4",
+        "active_level": "low"
+      },
+      "bmi088_gyro_cs": {
+        "pin": "pb0",
+        "active_level": "low"
+      },
+      "led_r": {
+        "pin": "ph12",
+        "active_level": "high"
+      },
+      "led_g": {
+        "pin": "ph11",
+        "active_level": "high"
+      },
+      "led_b": {
+        "pin": "ph10",
+        "active_level": "high"
+      }
+    },
+      "pwm_channels": {
+      "bmi088_heater": {
+        "timer": "tim10",
+        "channel": 1,
+        "failsafe_timer": "tim7"
+      }
+    }
+  },
+  "devices": {
+      "bmi088": {
+      "spi": "spi1",
+      "acc_cs": "bmi088_acc_cs",
+      "gyro_cs": "bmi088_gyro_cs",
+      "gyro_drdy": "bmi088_gyro_drdy",
+      "heater_pwm": "bmi088_heater"
+    },
+  }
+}

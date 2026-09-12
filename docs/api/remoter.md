@@ -5,8 +5,9 @@
 ## 注意
 
 - 在 `params.json` 中设置 `remoter.source` 为 `dr16`、`vt03`、`ps2` 或 `ps2_uart`，然后重新执行 CMake configure。当前配置生成器一次只启用其中一种来源。
-- DR16 和串口 PS2 接收器使用 `bindings.remoter_uart`；VT03 当前使用 `app::uart::vt03`
-- 同步 PS2 的 GPIO/SPI backend 与引脚在顶层 `ps2` 配置中选择；其 binding 由 `configs/generated/bsp_bindings.hpp` 在编译期生成。
+- DR16 和串口 PS2 接收器使用 `bindings.remoter_uart`；VT03 使用
+  `bindings.vt03_uart`。选择 VT03 时该 UART 必须在 IOC 中配置 RX DMA。
+- 同步 PS2 的 GPIO/SPI backend 与引脚在顶层 `ps2` 配置中选择；其 binding 由 `build/<preset>/generated/bsp_bindings.hpp` 在编译期生成。
 
 ## 先定义机器人的 command
 

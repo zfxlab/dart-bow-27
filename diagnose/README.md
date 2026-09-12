@@ -8,8 +8,12 @@
 - `motor/`：当前配置的测试电机注册、发送和在线检测。
 - `remoter/`：遥控器输入、离线和映射结果。
 - `referee_ui/`：裁判系统接收与 UI 更新。
+- `gpio/`：板级逻辑 GPIO 输出诊断；F4 默认循环 RGB LED。
 - `usart/`、`usb/`：主机收发与协议校验。
 
 诊断状态集中在 `common/demo_debug.hpp`，可用调试器 Watch 查看。开始机器人应用时，应替换 `app_start()`，不要把诊断逻辑带入业务控制循环。
 
-注意：电机诊断会发送测试命令；上电前确认机构安全。CAN、ADC、SPI、GPIO、PWM、EXTI、Flash、DWT 目前没有独立诊断入口。
+注意：电机诊断会发送测试命令；上电前确认机构安全。CAN、ADC、SPI、PWM、EXTI、Flash、DWT 目前没有独立诊断入口。
+
+
+Current test selection, CAN receive observation and board differences: [configuration review](../docs/config-diagnose-review.md).

@@ -1,0 +1,9 @@
+set(PNX_BOARD_IOC "${CMAKE_CURRENT_LIST_DIR}/h723_mc02.ioc")
+set(PNX_BOARD_CUBEMX_DIR "${CMAKE_CURRENT_LIST_DIR}/cmake/stm32cubemx")
+set(PNX_BOARD_TOOLCHAIN "${CMAKE_CURRENT_LIST_DIR}/toolchain.cmake")
+set(PNX_BOARD_LINKER_SCRIPT "${CMAKE_CURRENT_LIST_DIR}/pnx_STM32H723XG_FLASH.ld")
+set(PNX_BOARD_PARAMS "${CMAKE_CURRENT_LIST_DIR}/../../configs/boards/h723_mc02/params.json")
+set(PNX_BOARD_ROBOT_CONFIG "${CMAKE_CURRENT_LIST_DIR}/../../configs/boards/h723_mc02/robot.json")
+set(PNX_BOARD_FAMILY "stm32h7")
+
+set(PNX_BOARD_OPENOCD_TARGET "target/stm32h7x.cfg")

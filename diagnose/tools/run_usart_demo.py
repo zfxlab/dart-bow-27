@@ -47,9 +47,9 @@ def run(port: str, baud: int, count: int, timeout: float, bad_checksum: bool) ->
 
 
 def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(description="Run embedded_framework USART1 demo test.")
-    parser.add_argument("--port", required=True, help="USART1 serial port, for example COM7 or /dev/ttyUSB0")
-    parser.add_argument("--baud", type=int, default=115200)
+    parser = argparse.ArgumentParser(description="Run the generated test_uart diagnostic.")
+    parser.add_argument("--port", required=True, help="test_uart host serial port, for example COM7 or /dev/ttyUSB0")
+    parser.add_argument("--baud", type=int, default=921600)
     parser.add_argument("--count", type=int, default=10)
     parser.add_argument("--timeout", type=float, default=1.0)
     parser.add_argument("--bad-checksum", action="store_true", help="Send one corrupted packet before normal tests")

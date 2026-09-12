@@ -65,10 +65,23 @@ struct imu_unit_state : unit_test_state
     float pitch = 0.0f;
     float roll = 0.0f;
     float total_yaw = 0.0f;
+    bool imu_accel_chip_ok = false;
+    bool imu_gyro_chip_ok = false;
     float imu_temperature = 0.0f;
     bool imu_temperature_ready = false;
     bool imu_temperature_control_ok = false;
     bool imu_calibrated = false;
+    std::uint32_t imu_gyro_ready_count = 0;
+    std::uint32_t imu_update_count = 0;
+    // TEMP_IMU_DWT: remove after profiling.
+    float temp_dwt_read_us = 0;
+    float temp_dwt_quaternion_us = 0;
+    float temp_dwt_tactical_us = 0;
+    float temp_dwt_round_us = 0;
+    float temp_dwt_round_min_us = 0;
+    float temp_dwt_round_max_us = 0;
+    float temp_dwt_round_avg_us = 0;
+    std::uint32_t temp_dwt_count = 0;
     std::uint32_t imu_sample_error_count = 0;
     std::uint32_t imu_spi_read_error_count = 0;
     std::uint32_t imu_spi_write_error_count = 0;
@@ -218,9 +231,11 @@ struct referee_ui_state : unit_test_state
 
 struct debug_instance_type
 {
+    link_state can{};
     link_state usart{};
     link_state usb{};
     imu_unit_state imu_unit{};
+    unit_test_state gpio_unit{};
     ps2_unit_state ps2_unit{};
     unit_test_state motor_unit{};
     remoter_unit_state remoter_unit{};

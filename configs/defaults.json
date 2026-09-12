@@ -1,0 +1,117 @@
+{
+  "common": {
+    "build": {
+      "usbx": false
+    },
+    "ahrs": {
+      "solver": "quaternion_ekf",
+      "imu_offset_x": 0,
+      "imu_thread_priority": 3,
+      "temp_thread_priority": 4,
+      "target_temp": 45,
+      "loop_sleep_ticks": 0
+    },
+    "remoter": {
+      "source": "none",
+      "thread_priority": 2,
+      "rx_timeout_ticks": 100,
+      "offline_timeout_ticks": 120,
+      "ps2_uart_offline_timeout_ticks": 600,
+      "ps2_uart_frame_timeout_ticks": 20,
+      "ps2_uart_deadzone": 0.08
+    },
+    "referee": {
+      "thread_priority": 8
+    },
+    "test": {
+      "auto_run_on_boot": false,
+      "imu": false,
+      "usart": false,
+      "usb": false,
+      "can": false,
+      "remoter": false,
+      "referee_ui": false,
+      "gpio_leds": false,
+      "motor_demo": false,
+      "thread_priority": 10
+    },
+    "usb": {
+      "read_thread_priority": 5,
+      "write_thread_priority": 5,
+      "period_ticks": 2
+    },
+    "dmimu": {
+      "communication_mode": "request",
+      "offline_timeout_ticks": 100,
+      "thread_priority": 3,
+      "receive_wait_ticks": 1,
+      "request_period_ticks": 1
+    },
+    "can_diag": {
+      "enabled": false,
+      "sample_period_ms": 1000,
+      "window_size": 60
+    },
+    "bindings": {
+      "remoter_uart": "none",
+      "vt03_uart": "none",
+      "referee_uart": "none"
+    }
+  },
+  "boards": {
+    "h723_mc02": {
+      "bmi088": {
+        "boost_duty": 0.06,
+        "reboost_duty": 0.05,
+        "approach_start_duty": 0.044,
+        "approach_end_duty": 0.029,
+        "hold_max_duty": 0.04,
+        "pid_kp": 300,
+        "pid_ki": 0.06,
+        "pid_kd": 100,
+        "pid_max_out": 90,
+        "pid_max_iout": 200,
+        "pid_scalar_a": 3.5,
+        "pid_scalar_b": 0.2
+      },
+      "ahrs": {
+        "loop_sleep_ticks": 0
+      }
+    },
+    "f407_c_board": {
+      "bmi088": {
+        "boost_duty": 0.9,
+        "reboost_duty": 0.9,
+        "approach_start_duty": 0.9,
+        "approach_end_duty": 0.3,
+        "hold_max_duty": 0.9,
+        "pid_kp": 650.0,
+        "pid_ki": 0.08,
+        "pid_kd": 10.0,
+        "pid_max_out": 900.0,
+        "pid_max_iout": 300.0,
+        "pid_scalar_a": 3.5,
+        "pid_scalar_b": 0.2
+      },
+      "ahrs": {
+        "loop_sleep_ticks": 1
+      }
+    }
+  },
+  "recommendations": {
+    "h723_mc02": {
+      "bindings": {
+        "remoter_uart": "uart5",
+        "vt03_uart": "usart1",
+        "referee_uart": "usart1"
+      }
+    },
+    "f407_c_board": {
+      "bindings": {
+        "remoter_uart": "usart3",
+        "vt03_uart": "usart6",
+        "referee_uart": "usart6"
+      }
+    }
+  }
+}

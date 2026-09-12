@@ -11,7 +11,6 @@
 | [DMA 缓冲区](bsp-dma.md) | 为 ADC、SPI、USART 的 DMA 传输准备合法缓冲区。 |
 | [DWT 时间](bsp-dwt.md) | 获取高精度时间间隔，或做短暂忙等延时。 |
 | [EXTI 外部中断](bsp-exti.md) | 为已配置的 GPIO 输入注册中断回调。 |
-| [Flash](bsp-flash.md) | 擦除或写入内部 Flash。 |
 | [GPIO](bsp-gpio.md) | 读取输入、控制输出。 |
 | [PWM](bsp-pwm.md) | 启动 PWM 并设置占空比、周期或脉宽。 |
 | [SPI](bsp-spi.md) | 用阻塞、中断或 DMA 方式收发 SPI 数据。 |

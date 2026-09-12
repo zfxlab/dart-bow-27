@@ -13,8 +13,8 @@ This page is a short project index for coding agents. It does not replace the ta
 
 | Task | Start here |
 | --- | --- |
-| Board, peripheral, CAN, or generator changes | `board/board.ioc`, `boards/<board>/board.json`, `configs/cmake/`, configuration docs |
-| Robot device configuration | `configs/robot.json`, generated `robot_config.hpp`, the matching Device API and implementation |
+| Board, peripheral, CAN, or generator changes | `boards/<board>/<board>.ioc`, `boards/<board>/board.json`, `configs/cmake/`, configuration docs |
+| Robot device configuration | `configs/boards/<board>/robot.json`, generated `robot_config.hpp`, the matching Device API and implementation |
 | Communication or callbacks | `docs/concepts/interrupt-callback.md`, the matching BSP/Module API, then its public header and implementation |
 | Board diagnostics | `diagnose/README.md`, the target diagnostic directory, then its implementation |
 | CAN diagnostics | `pnx_bsp/can/README.md`, `pnx_bsp/can/src/bsp_can.cpp`, and `bsp_can_diag.cpp` |
@@ -22,8 +22,8 @@ This page is a short project index for coding agents. It does not replace the ta
 ## Project rules
 
 - Treat current source behavior as authoritative. Do not infer API behavior from filenames or old docs.
-- `configs/generated/` is CMake output. Never edit it by hand.
-- After changing `board/board.ioc`, regenerate the CubeMX board code, then run CMake configure and build.
+- `build/<preset>/generated/` is CMake output. Never edit it by hand.
+- After changing `boards/<board>/<board>.ioc`, regenerate that board's CubeMX code, then run CMake configure and build.
 - After changing JSON configuration, rerun CMake configure so generated headers are refreshed.
 - Keep examples focused on framework users; avoid private helpers and implementation detail.
 - `diagnose/` is the current default application entry. Replace `app_start()` when starting robot application code; do not carry diagnostic test commands into the control program.
