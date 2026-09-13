@@ -6,34 +6,57 @@
             "hidden": true,
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build/${presetName}",
-		    "toolchainFile": "${sourceDir}/cmake/gcc-arm-none-eabi.cmake",
+		    "toolchainFile": "${sourceDir}/cmake/gcc-arm-none-eabi.cmake"
+        },
+        {
+            "name": "h723-debug",
+            "inherits": "default",
             "cacheVariables": {
-                "PNX_BOARD": "h723_v1"
+                "CMAKE_BUILD_TYPE": "Debug",
+                "PNX_BOARD": "h723_mc02"
             }
         },
         {
-            "name": "Debug",
+            "name": "h723-release",
             "inherits": "default",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
+                "CMAKE_BUILD_TYPE": "Release",
+                "PNX_BOARD": "h723_mc02"
             }
         },
         {
-            "name": "Release",
+            "name": "f407-debug",
             "inherits": "default",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
+                "CMAKE_BUILD_TYPE": "Debug",
+                "PNX_BOARD": "f407_c_board"
+            }
+        },
+        {
+            "name": "f407-release",
+            "inherits": "default",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "PNX_BOARD": "f407_c_board"
             }
         }
     ],
     "buildPresets": [
         {
-            "name": "Debug",
-            "configurePreset": "Debug"
+            "name": "h723-debug",
+            "configurePreset": "h723-debug"
         },
         {
-            "name": "Release",
-            "configurePreset": "Release"
+            "name": "h723-release",
+            "configurePreset": "h723-release"
+        },
+        {
+            "name": "f407-debug",
+            "configurePreset": "f407-debug"
+        },
+        {
+            "name": "f407-release",
+            "configurePreset": "f407-release"
         }
     ]
 }

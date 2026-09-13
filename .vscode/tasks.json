@@ -1,0 +1,60 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "cmake-configure-debug",
+      "type": "cmake",
+      "command": "configure",
+      "problemMatcher": []
+    },
+    {
+      "label": "cmake-build-debug",
+      "type": "cmake",
+      "command": "build",
+      "targets": [
+        "pnx_embedded"
+      ],
+      "dependsOn": "cmake-configure-debug",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [
+        "$gcc"
+      ]
+    },
+    {
+      "label": "flash-openocd",
+      "type": "process",
+      "command": "openocd",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "args": [
+        "-f",
+        "${input:openocdInterface}",
+        "-f",
+        "${command:cmake.buildDirectory}/pnx-openocd.cfg",
+        "-c",
+        "program {${command:cmake.buildDirectory}/pnx_embedded.elf} verify reset exit"
+      ],
+      "dependsOn": "cmake-build-debug",
+      "runOptions": {
+        "reevaluateOnRerun": true
+      },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "openocdInterface",
+      "type": "pickString",
+      "description": "选择当前使用的 OpenOCD 调试探针",
+      "options": [
+        "interface/cmsis-dap.cfg",
+        "interface/stlink.cfg"
+      ],
+      "default": "interface/cmsis-dap.cfg"
+    }
+  ]
+}

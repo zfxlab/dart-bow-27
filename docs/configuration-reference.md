@@ -1,6 +1,6 @@
 # 配置参考
 
- `configs/params.json` 和 `configs/robot.json`更详细的配置，完整步骤见[配置](configuration.md)。
+ `configs/boards/<board>/params.json` 和 `robot.json` 是当前板型的详细配置，完整步骤见[配置](configuration.md)。
 
 ## `params.json`：
 
@@ -8,7 +8,7 @@
 
 | 字段 | 示例 | 作用 |
 | --- | --- | --- |
-| `build.usbx` | `true` |编译 USBX 与 USB CDC BSP |
+| `build.usbx` | `true` / `false` | 编译 USBX 与 USB CDC BSP；公共缺省为关闭，当前 F407 profile 显式开启，H723 profile 显式关闭 |
 
 ```json
 {
@@ -24,6 +24,7 @@
 {
   "bindings": {
     "remoter_uart": "uart5",
+    "vt03_uart": "usart1",
     "referee_uart": "usart1",
     "uart_ports": {
       "host_link": "uart7"
@@ -48,7 +49,8 @@
 
 | 字段 | 生成结果 | 注意 |
 | --- | --- | --- |
-| `remoter_uart` | `app::uart::dr16`、`app::uart::vt03`、`app::uart::ps2_uart` | DR16、VT03、串口 PS2 接收器使用它。 |
+| `remoter_uart` | `app::uart::dr16`、`app::uart::ps2_uart` | DR16 与串口 PS2 接收器使用它。 |
+| `vt03_uart` | `app::uart::vt03` | VT03 使用它；当 `remoter.source=vt03` 时必须是 IOC 中带 RX DMA 的 UART。 |
 | `referee_uart` | `app::uart::referee` | Referee 服务使用它。 |
 | `uart_ports.<角色>` | `app::uart::<角色>` | 自定义应用串口角色。角色必须是合法 C++ 名称，且不能与内置角色重名。 |
 | `spi_buses.<角色>` | `app::spi::<角色>` | 自定义 SPI 总线角色。 |
@@ -110,7 +112,7 @@
 
 | 分组 | 关键字段 | 用处 |
 | --- | --- | --- |
-| `remoter` | `source`、线程优先级、超时、串口 PS2 死区 | **`source` 只能是 `dr16`、`vt03`、`ps2` 或 `ps2_uart`**；`ps2` 的引脚和 backend 在顶层 `ps2` 配置。|
+| `remoter` | `source`、线程优先级、超时、串口 PS2 死区 | **`source` 只能是 `dr16`、`vt03`、`ps2`、`ps2_uart` 或 `none`**；`ps2` 的引脚和 backend 在顶层 `ps2` 配置。|
 | `referee` | `thread_priority` | 生成线程优先级|
 | `ahrs` | `imu_offset_x`、两个线程优先级、`target_temp` | 生成 `params::ahrs`，作为 AHRS 默认配置。 |
 | `dmimu` | `communication_mode`、离线超时、线程优先级、接收等待、请求周期 | 生成 `params::dmimu`。模式只能是 `active` 或 `request`；超时与接收等待必须大于 0，`request` 模式的请求周期也必须大于 0。 |
@@ -207,11 +209,11 @@
 重新执行：
 
 ```powershell
-cmake --preset Debug
-cmake --build --preset Debug
+cmake --preset h723-debug
+cmake --build --preset h723-debug
 ```
 
 Configure 阶段会检查名称、IOC 外设、CAN 类型和 ID 范围。成功后可只读查看：
 
-- `configs/generated/config.hpp`：`params.json` 的生成结果；
-- `configs/generated/robot_config.hpp`：`robot.json` 的生成结果。
+- `build/<preset>/generated/config.hpp`：`params.json` 的生成结果；
+- `build/<preset>/generated/robot_config.hpp`：`robot.json` 的生成结果。

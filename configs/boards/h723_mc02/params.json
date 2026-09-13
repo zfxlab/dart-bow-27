@@ -1,0 +1,62 @@
+{
+  "build": {
+    "usbx": false
+  },
+  "bindings": {
+    "remoter_uart": "uart5",
+    "vt03_uart": "usart1",
+    "referee_uart": "usart1"
+  },
+  "can": {
+    "fdcan1": {
+      "id_type": "standard"
+    },
+    "fdcan2": {
+      "id_type": "standard"
+    },
+    "fdcan3": {
+      "id_type": "standard"
+    }
+  },
+  "ahrs": {
+    "solver": "quaternion_ekf",
+    "imu_offset_x": 0,
+    "imu_thread_priority": 3,
+    "temp_thread_priority": 4,
+    "target_temp": 45
+  },
+  "remoter": {
+    "source": "none",
+    "thread_priority": 2,
+    "rx_timeout_ticks": 100,
+    "offline_timeout_ticks": 120
+  },
+  "referee": {
+    "thread_priority": 8
+  },
+  "test": {
+    "auto_run_on_boot": true,
+    "imu": true,
+    "usart": false,
+    "usb": false,
+    "can": false,
+    "remoter": false,
+    "referee_ui": false,
+    "gpio_leds": false,
+    "motor_demo": false
+  },
+  "bmi088": {
+    "boost_duty": 0.06,
+    "reboost_duty": 0.05,
+    "approach_start_duty": 0.044,
+    "approach_end_duty": 0.029,
+    "hold_max_duty": 0.04,
+    "pid_kp": 300,
+    "pid_ki": 0.06,
+    "pid_kd": 100,
+    "pid_max_out": 90,
+    "pid_max_iout": 200,
+    "pid_scalar_a": 3.5,
+    "pid_scalar_b": 0.2
+  }
+}

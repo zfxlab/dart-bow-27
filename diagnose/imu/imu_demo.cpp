@@ -128,6 +128,7 @@ void capture_dmimu_diagnostics() noexcept
 }
 #endif
 
+#if HAS_AHRS
 float wrap_angle(float angle) noexcept
 {
     constexpr float pi = 3.14159265358979323846f;
@@ -142,6 +143,8 @@ float wrap_angle(float angle) noexcept
     }
     return angle;
 }
+
+#endif
 
 void sync_debug(const ::imu::state& data, std::uint32_t stages, bool timed_out) noexcept
 {
@@ -166,12 +169,27 @@ void sync_debug(const ::imu::state& data, std::uint32_t stages, bool timed_out) 
     state.roll = data.roll;
     state.total_yaw = data.total_yaw;
 
+#if HAS_AHRS
     const auto& diagnostics = ahrs::service::instance().diagnostics();
+    state.imu_accel_chip_ok = diagnostics.accel_chip_ok;
+    state.imu_gyro_chip_ok = diagnostics.gyro_chip_ok;
     state.imu_temperature = diagnostics.temperature;
     state.imu_temperature_ready = diagnostics.temperature_ready;
     state.imu_temperature_control_ok =
         ahrs::service::instance().imu().diagnostics().temperature_control_ok;
     state.imu_calibrated = diagnostics.calibrated;
+    state.imu_gyro_ready_count = diagnostics.gyro_ready_count;
+    state.imu_update_count = diagnostics.update_count;
+    // TEMP_IMU_DWT: remove after profiling.
+    state.temp_dwt_read_us = diagnostics.temp_dwt_read_us;
+    state.temp_dwt_quaternion_us = diagnostics.temp_dwt_quaternion_us;
+    state.temp_dwt_tactical_us = diagnostics.temp_dwt_tactical_us;
+    state.temp_dwt_round_us = diagnostics.temp_dwt_round_us;
+    state.temp_dwt_round_min_us = diagnostics.temp_dwt_round_min_us;
+    state.temp_dwt_round_max_us = diagnostics.temp_dwt_round_max_us;
+    state.temp_dwt_round_avg_us = diagnostics.temp_dwt_round_avg_us;
+    state.temp_dwt_count = diagnostics.temp_dwt_count;
+
     state.imu_sample_error_count = diagnostics.sample_error_count;
     state.imu_spi_read_error_count = diagnostics.imu_spi_read_error_count;
     state.imu_spi_write_error_count = diagnostics.imu_spi_write_error_count;
@@ -204,6 +222,8 @@ void sync_debug(const ::imu::state& data, std::uint32_t stages, bool timed_out) 
     state.yaw_difference = wrap_angle(data.yaw - tactical.yaw);
     state.pitch_difference = wrap_angle(data.pitch - tactical.pitch);
     state.roll_difference = wrap_angle(data.roll - tactical.roll);
+
+#endif
 
     state.failure_mask = 0;
     if ((stages & service_initialized) == 0U)
@@ -280,6 +300,7 @@ void start() noexcept
     dmimu_demo_debug.compiled_enabled = true;
 #endif
 
+#if HAS_AHRS
     ahrs::config cfg{};
     cfg.imu_offset_x = params::ahrs::imu_offset_x;
     cfg.imu_thread_priority = params::ahrs::imu_thread_priority;
@@ -294,6 +315,8 @@ void start() noexcept
         state.passed = false;
         return;
     }
+
+#endif
 
 #if HAS_DMIMU
     ::imu::dmimu::config dmimu_cfg{};
@@ -330,7 +353,11 @@ void start() noexcept
     }
 #endif
 
+#if HAS_AHRS
     ahrs_sub = msg::subscribe(ahrs::service::instance().output());
+#else
+    ahrs_sub = msg::subscribe(ahrs::dmimu_service::instance().output());
+#endif
     if (!ahrs_sub.valid())
     {
         state.failure_mask = subscribe_failed;
@@ -338,11 +365,16 @@ void start() noexcept
         return;
     }
 
+#if HAS_AHRS
+    constexpr auto monitor_priority = params::ahrs::imu_thread_priority + 1U;
+#else
+    constexpr auto monitor_priority = params::dmimu::thread_priority + 1U;
+#endif
     if (!monitor_started)
     {
         if (tx_thread_create(&monitor_thread, const_cast<CHAR*>("imu_unit_mon"), monitor_entry, 0,
-                             monitor_stack, sizeof(monitor_stack), cfg.imu_thread_priority + 1U,
-                             cfg.imu_thread_priority + 1U, TX_NO_TIME_SLICE, TX_AUTO_START) == TX_SUCCESS)
+                             monitor_stack, sizeof(monitor_stack), monitor_priority,
+                             monitor_priority, TX_NO_TIME_SLICE, TX_AUTO_START) == TX_SUCCESS)
         {
             monitor_started = true;
         }

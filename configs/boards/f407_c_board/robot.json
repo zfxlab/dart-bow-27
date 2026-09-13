@@ -1,0 +1,16 @@
+{
+  "devices": {
+    "bmi088": {
+      "enabled": true
+    },
+    "motors": {
+      "list": []
+    },
+    "led": {
+      "enabled": false
+    },
+    "dmimu": {
+      "enabled": false
+    }
+  }
+}

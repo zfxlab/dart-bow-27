@@ -7,3 +7,13 @@
 两条服务不会自动切换或仲裁。当前诊断启动顺序中，BMI088 初始化失败会阻止 DMIMU 启动。
 
 使用接口和配置见 [AHRS API](../../docs/api/ahrs.md) 与 [配置](../../docs/configuration.md)。
+# AHRS solver selection
+
+Set `ahrs.solver` in `configs/boards/<board>/params.json` to
+`"quaternion_ekf"` or `"tactical_ekf"`, then rebuild and flash.
+Both profiles default to `quaternion_ekf`. Only the selected solver runs;
+the regular quaternion/yaw/pitch/roll output always comes from that solver.
+With tactical selected, total_yaw accumulates wrapped yaw differences.
+`tactical_*` diagnostics stay at their initial values with quaternion selected.
+Temporary `temp_dwt_quaternion_us` / `temp_dwt_tactical_us` remains zero for
+the inactive solver. F4's existing loop_sleep_ticks setting is independent.

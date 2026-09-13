@@ -1,0 +1,43 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "STM32 Debug (DAP)",
+      "type": "cortex-debug",
+      "serverpath": "openocd",
+      "request": "launch",
+      "servertype": "openocd",
+      "cwd": "${workspaceFolder}",
+      "executable": "${command:cmake.buildDirectory}/pnx_embedded.elf",
+      "preLaunchTask": "cmake-build-debug",
+      "configFiles": [
+        "interface/cmsis-dap.cfg",
+        "${command:cmake.buildDirectory}/pnx-openocd.cfg"
+      ],
+      "runToEntryPoint": "main",
+      "liveWatch": {
+        "enabled": true,
+        "samplesPerSecond": 20
+      }
+    },
+    {
+      "name": "STM32 Debug (STLink)",
+      "type": "cortex-debug",
+      "serverpath": "openocd",
+      "request": "launch",
+      "servertype": "openocd",
+      "cwd": "${workspaceFolder}",
+      "executable": "${command:cmake.buildDirectory}/pnx_embedded.elf",
+      "preLaunchTask": "cmake-build-debug",
+      "configFiles": [
+        "interface/stlink.cfg",
+        "${command:cmake.buildDirectory}/pnx-openocd.cfg"
+      ],
+      "runToEntryPoint": "main",
+      "liveWatch": {
+        "enabled": true,
+        "samplesPerSecond": 20
+      }
+    }
+  ]
+}

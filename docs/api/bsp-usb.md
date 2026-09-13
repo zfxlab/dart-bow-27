@@ -11,6 +11,15 @@
 
 先在 `params.json` 中启用 `build.usbx`，再在启动阶段调用一次 `init()`。配置必须至少提供一个 RX 或发送结果回调；回调目标必须长期存在。
 
+USBX 栈与控制器启动由 ThreadX 的 `MX_USBX_Device_Init()` 启动钩子完成，
+`bsp::usb::init()` 只创建应用收发线程，不重复初始化 PCD 或启动控制器。
+`init()` 返回 `ok` 不表示主机已枚举；`connected()` 表示 CDC 实例存在且
+USBX device 已 configured，不额外要求主机打开串口或设置 DTR。
+`period_ticks` 必须大于零，RX 数据仅在回调期间有效。
+
+H7/F4 使用相同公共接口和收发实现。私有 USBX 适配的构建选择、描述符和
+PCD 边界见 [USB 统一调用链](../usb-v2-integration.md)。
+
 ```cpp
 // 使用片段：接收 USB 字节流，并一次提交两条应用协议数据
 #include "bsp_usb.hpp"

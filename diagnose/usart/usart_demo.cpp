@@ -39,7 +39,7 @@ void on_rx(bsp::usart::port port, const bsp::usart::rx_frame& frame)
     state.ready = true;
     state.connected = true;
 
-    if (port != app::uart::usart1 || frame.data == nullptr || frame.len != sizeof(protocol::host_packet))
+    if (port != app::uart::test_uart || frame.data == nullptr || frame.len != sizeof(protocol::host_packet))
     {
         record_error(state, types::status::invalid_arg);
         return;
@@ -63,7 +63,7 @@ void on_rx(bsp::usart::port port, const bsp::usart::rx_frame& frame)
     state.last_tx = response;
 
     const types::status tx_status = bsp::usart::transmit(
-        app::uart::usart1, reinterpret_cast<const std::uint8_t*>(&response), sizeof(response), 50U);
+        app::uart::test_uart, reinterpret_cast<const std::uint8_t*>(&response), sizeof(response), 50U);
     state.last_status = protocol::status_code(tx_status);
     if (tx_status == types::status::ok)
     {
@@ -89,7 +89,13 @@ types::status start() noexcept
     debug::reset(state);
     state.started = true;
 
-    types::status status = bsp::usart::init(app::uart::usart1, bsp::usart::mode::dma);
+    if (!bsp::dma::valid(rx_buffer.view()))
+    {
+        record_error(state, types::status::invalid_arg);
+        return types::status::invalid_arg;
+    }
+
+    types::status status = bsp::usart::init(app::uart::test_uart, bsp::usart::mode::dma);
     state.last_status = protocol::status_code(status);
     if (status != types::status::ok)
     {
@@ -98,7 +104,7 @@ types::status start() noexcept
     }
 
     status = bsp::usart::start_rx_to_idle(
-        app::uart::usart1, rx_buffer.view(), bsp::usart::rx_callback::bind<&on_rx>(), nullptr);
+        app::uart::test_uart, rx_buffer.view(), bsp::usart::rx_callback::bind<&on_rx>(), nullptr);
     state.last_status = protocol::status_code(status);
     if (status != types::status::ok)
     {
