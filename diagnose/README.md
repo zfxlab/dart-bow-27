@@ -16,4 +16,4 @@
 注意：电机诊断会发送测试命令；上电前确认机构安全。CAN、ADC、SPI、PWM、EXTI、Flash、DWT 目前没有独立诊断入口。
 
 
-Current test selection, CAN receive observation and board differences: [configuration review](../docs/config-diagnose-review.md).
+Current test selection and required bindings are documented in [configuration](../docs/configuration.md). H7/F4 BSP and CAN capability differences are documented in [H7/F4 unification](../docs/concepts/h7-f4-unification.md).

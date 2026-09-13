@@ -111,7 +111,7 @@ types::status send_chassis_command() noexcept
 | 可绑定目标 | 静态函数，或长期存在对象的成员函数。 |
 | 调用上下文 | FDCAN HAL 中断路径。 |
 
-回调运行在 FDCAN HAL 中断路径。它不能等待、获取 ThreadX mutex、调用可能阻塞的 BSP API，或执行耗时解析。回调目标由调用者持有；BSP 不管理其生命周期。
+回调运行在所选后端的 CAN HAL 中断路径（H7 为 FDCAN，F4 为 bxCAN）。它不能等待、获取 ThreadX mutex、调用可能阻塞的 BSP API，或执行耗时解析。回调目标由调用者持有；BSP 不管理其生命周期。
 
 ### `bus`、`bus_type`、`id_type`
 

@@ -79,6 +79,7 @@ nav:
       - 启动流程: startup.md
 
   - 理解 PnX:
+      - H7/F4 统一架构: concepts/h7-f4-unification.md
       - 通用回调: concepts/interrupt-callback.md
 
   - API Reference:
@@ -90,7 +91,6 @@ nav:
           - DMA 缓冲区: api/bsp-dma.md
           - DWT 时间: api/bsp-dwt.md
           - EXTI 外部中断: api/bsp-exti.md
-          - Flash: api/bsp-flash.md
           - GPIO: api/bsp-gpio.md
           - PWM: api/bsp-pwm.md
           - SPI: api/bsp-spi.md

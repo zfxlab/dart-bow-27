@@ -5,7 +5,7 @@
 ## 注意
 
 - referee线程实现按header分包，但不会主动发送信息给上层；需要裁判系统数据时需要在上层逻辑中注册裁判系统回调函数并自己publish
-- 在 `params.json` 的 `bindings.referee_uart` 选择裁判系统接入的 UART，这个绑定会生成 `app::uart::referee`；默认配置使用 `usart1`。详见[配置](../configuration.md)。
+- 在 `params.json` 的 `bindings.referee_uart` 选择裁判系统接入的 UART，这个绑定会生成 `app::uart::referee`；当前 H723 profile 使用 `usart1`，F407 profile 使用 `usart6`。详见[配置](../configuration.md)。
 - 服务自己占用该 UART 的 DMA 接收。不要再用 `bsp::usart` 或另一个模块初始化、接收同一个串口。
 
 

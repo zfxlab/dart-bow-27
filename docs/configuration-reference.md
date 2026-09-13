@@ -8,7 +8,7 @@
 
 | 字段 | 示例 | 作用 |
 | --- | --- | --- |
-| `build.usbx` | `true` |编译 USBX 与 USB CDC BSP |
+| `build.usbx` | `true` / `false` | 编译 USBX 与 USB CDC BSP；公共缺省为关闭，当前 F407 profile 显式开启，H723 profile 显式关闭 |
 
 ```json
 {

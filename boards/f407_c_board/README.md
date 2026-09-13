@@ -3,7 +3,7 @@
 This directory owns the authoritative CubeMX IOC and generated F407 board
 tree, startup, linker, ThreadX/USBX integration, `board.cmake` and static
 `board.json` bindings. The matching BSP implementation is the
-`pnx_bsp/refactor/V2-f4` branch.
+`pnx_bsp` `stm32f4` branch.
 
 ## Current hardware closure
 

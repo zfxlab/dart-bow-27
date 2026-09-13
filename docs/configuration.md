@@ -15,13 +15,13 @@
 }
 ```
 
-省略或设为 `false` 表示不启用对应消费者；固定板级绑定仍保留。启用没有板级绑定的器件会在生成阶段报错。F4 当前未描述 BMI088 的固定绑定，不能把这一点理解为 PCB 上一定没有 BMI088。
+省略或设为 `false` 表示不启用对应消费者；固定板级绑定仍保留。启用没有板级绑定的器件会在生成阶段报错。当前 H723 与 F407 profile 都描述并启用了各自的 BMI088 固定绑定，但 SPI、片选、DRDY、加热 PWM 和调参分别来自各自板型，不能跨板复制。
 
 `params.json` 保存运行参数、应用使用哪个外接接口及诊断选择；`robot.json` 保存设备组成和协议地址。外接设备换接口属于应用接线选择，不应反写板载固定接线。`configs/boards/<board>/` 是板型对应的默认应用配置位置，不表示其中内容是 PCB 固有属性。
 
-`test.motor_demo` 默认关闭，仅启用现有 `motor1/motor2/motor3` 专用诊断例程；H7 示例配置显式开启。它不控制电机驱动是否编译，也不替代应用创建设备和注册服务。任意电机名称和数量应由自己的应用使用生成的 `robot::motors` 配置。
+`test.motor_demo` 默认关闭，仅启用现有 `motor1/motor2/motor3` 专用诊断例程。启用前必须同时配置这三个名称；它不控制电机驱动是否编译，也不替代应用创建设备和注册服务。任意电机名称和数量应由自己的应用使用生成的 `robot::motors` 配置。
 
-切板使用不同构建目录和对应 BSP 分支：H7 为 `refactor/V2-h7`，F4 为 `refactor/V2-f4`。`PNX_BOARD` 不会自动 checkout 子仓库。开发时可用 `PNX_BSP_SOURCE_DIR` 指向另一工作树；MCU 家族不匹配会在配置时失败。
+切板使用不同构建目录和对应 BSP 分支：H7 为 `stm32h7`，F4 为 `stm32f4`。父工程与其他子模块使用 `main`。`PNX_BOARD` 不会自动 checkout 子仓库。开发时可用 `PNX_BSP_SOURCE_DIR` 指向另一工作树；MCU 家族不匹配会在配置时失败。
 
 pnx_template中已经写好了大部分常用的 .json 配置，
 **更具体的功能见[配置参考](configuration-reference.md)。**
@@ -111,7 +111,7 @@ pnx_template中已经写好了大部分常用的 .json 配置，
 
 - `devices.motors.list` 中的每台电机都会生成配置并决定要编译哪些电机协议，电机仍然需要进行register等初始化行为
 
-#TODO：`test.thread_priority` 和 `test.auto_run_on_boot` 当前会生成到 `config.hpp`，但仓库内没有运行代码读取它们；修改这两个字段目前不会改变运行行为。
+`test.auto_run_on_boot` 由 `app_start()` 读取，用于决定是否自动调用 `diagnose_start()`。`test.thread_priority` 当前仍会生成，但现有诊断入口没有读取它；修改该字段不会改变运行行为。
 
 `test.gpio_leds=true` 启用可选 GPIO 输出测试（保留原字段名兼容配置）。
 在 `bindings.gpio_outputs.test_gpio` 中选择 board.json 已声明的输出角色，

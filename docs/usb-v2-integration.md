@@ -163,19 +163,18 @@ USBX heap 优先使用生成的 `USBX_DEVICE_MEMORY_STACK_SIZE`。旧 F4 模板�
 | H7 `h723_mc02` Release 完整编译链接 | 合并后通过，FLASH 124764 B、DTCMRAM 80208 B |
 | H7/F4 USB 2 个源文件分别编译 | 通过，`-Wall -Wextra -Werror` |
 | ARM 模拟 descriptor/controller/bridge 测试 | 两板通过，运行真实编译代码并调用原始 CubeMX descriptor builder |
-| USBX enabled/disabled CMake 源选择 | 两种情况均通过，未配置 F4 产品 |
+| USBX enabled/disabled CMake 源选择 | 两板两种情况均已纳入 V2 构建矩阵 |
 | H7/F4 当前硬件枚举与连续传输 | 未运行 |
 
 Release 构建的 USBX 原始 middleware 有编译器 array-bounds 警告；未通过修改
 生成代码或屏蔽整个工程告警处理它。上述 USB BSP 局部编译无警告。
 
-F4 按 `AGENTS.md` 仍要求先重新生成 Board 输出，再进行产品 configure/build。
-本轮只做生成器独立调用、USB 局部编译和模拟测试，没有绕过该前置条件。
+F4 IOC 与当前 Board 输出已经一致，产品 configure/build 已完成；这仍不等于 USB 硬件枚举或连续传输通过。
 当前磁盘中的 F4 descriptor 已是 ST 示例 VID/PID `0x0483/0x5710`，并未发现
 原文档记载的 identity-confirmed 宏；示例值不等于产品身份已确认。
-`build.usbx=false` 保持不变。
+当前 F407 profile 已按诊断需要设置 `build.usbx=true`；H723 profile 为 `false`。USBX 开关是应用选择，不改变公共 BSP 契约。
 
-测试入口和复现方式见 [tests/usb/README.md](../tests/usb/README.md)。
+双板产品矩阵入口为 `tests/v2-validation/validate.py`。
 
 ## 8. 官方参考
 

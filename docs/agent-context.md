@@ -5,15 +5,16 @@ This page is a short project index for coding agents. It does not replace the ta
 ## Read first
 
 1. `docs/project-structure.md` — directory responsibilities and dependency direction.
-2. `docs/configuration.md` and `docs/configuration-reference.md` — editable configuration and generated outputs.
-3. `docs/startup.md` — the real `app_start()` / ThreadX startup path.
-4. `docs/api/index.md` — user-facing API pages and usage examples.
+2. `docs/concepts/h7-f4-unification.md` — shared BSP contract, branch selection, and MCU-specific boundaries.
+3. `docs/configuration.md` and `docs/configuration-reference.md` — editable configuration and generated outputs.
+4. `docs/startup.md` — the real `app_start()` / ThreadX startup path.
+5. `docs/api/index.md` — user-facing API pages and usage examples.
 
 ## Where to look by task
 
 | Task | Start here |
 | --- | --- |
-| Board, peripheral, CAN, or generator changes | `boards/<board>/<board>.ioc`, `boards/<board>/board.json`, `configs/cmake/`, configuration docs |
+| Board, peripheral, CAN, or generator changes | `docs/concepts/h7-f4-unification.md`, `boards/<board>/<board>.ioc`, `boards/<board>/board.json`, `configs/cmake/`, configuration docs |
 | Robot device configuration | `configs/boards/<board>/robot.json`, generated `robot_config.hpp`, the matching Device API and implementation |
 | Communication or callbacks | `docs/concepts/interrupt-callback.md`, the matching BSP/Module API, then its public header and implementation |
 | Board diagnostics | `diagnose/README.md`, the target diagnostic directory, then its implementation |

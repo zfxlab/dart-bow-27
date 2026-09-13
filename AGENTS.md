@@ -43,24 +43,24 @@ chronological log.
 
 ## Repository and branch mapping
 
-| Repository | V2 branch | Purpose |
+| Repository | Stable branch | Purpose |
 | --- | --- | --- |
-| `pnx_template` | `refactor/V2` | Shared parent, board selection, generator, build and documentation |
-| `pnx_bsp` H7 | `refactor/V2-h7` | H7 direct implementation |
-| `pnx_bsp` F4 | `refactor/V2-f4` | F4 direct implementation, based on `origin/F4_version_bsp` |
-| `pnx_devices` | `main` unless a proven contract change is required | Shared Device layer |
-| `pnx_modules` | `main` unless a proven contract change is required | Shared Module layer; current main already contains measured F407 stack corrections |
-| `pnx_libs` | `main` unless a proven contract change is required | Shared callbacks, status, DMA attributes and utilities |
+| `pnx_template` | `main` | Shared parent, board selection, generator, build and documentation |
+| `pnx_bsp` H7 | `stm32h7` | H7 direct implementation |
+| `pnx_bsp` F4 | `stm32f4` | F4 direct implementation |
+| `pnx_devices` | `main` | Shared Device layer |
+| `pnx_modules` | `main` | Shared Module layer; current main already contains measured F407 stack corrections |
+| `pnx_libs` | `main` | Shared callbacks, status, DMA attributes and utilities |
 
 There is no separate `pnx_frame` repository in this workspace or in V2 scope.
-Do not change the branch naming scheme midway through the refactor.
+Treat `stm32h7` and `stm32f4` as the stable, long-lived BSP family branches; do not reintroduce phase-specific `refactor/V2-*` names in user documentation.
 
 ## Target build and board flow
 
 ```text
 PNX_BOARD=<profile>
         +
-matching pnx_bsp V2 branch
+matching pnx_bsp family branch
         +
 CubeMX IOC + board.json + params.json + robot.json
         -> build-local generated config and private bindings
@@ -69,7 +69,7 @@ CubeMX IOC + board.json + params.json + robot.json
         -> CMake build
 ```
 
-- `pnx_template/refactor/V2` will contain/select both H723 and F407 profiles.
+- `pnx_template/main` contains/selects both H723 and F407 profiles.
 - `PNX_BOARD` is the only normal user-facing board selection. Each
   `boards/<board>/` profile contains its IOC, CubeMX Board tree, linker/toolchain
   files, `board.cmake`, and `board.json`; its application configuration lives
@@ -241,7 +241,7 @@ preserves the visible row, focus and resource search filters across form refresh
 | --- | --- | --- |
 | Stage A architecture audit | done | H7/F4 parent, BSP, generator, IOC, linker, public headers and consumers reviewed |
 | Stage B V2 design | approved | Decisions in this file are authoritative |
-| Stage C branches and living document | done | V2 branches created; this file established |
+| Stage C branches and living document | done | Stable BSP family branches established; this file records the architecture |
 | Directory and dual-board build | done | Both profiles configure and link complete Debug and Release images against their matching BSP branch |
 | Generated binding shape | done | IOC discovery and dynamic IDs feed private PWM/SPI/USART/CAN HAL bindings; generated files remain build-local |
 | GPIO / EXTI | done | H7/F4 public headers match; F4 implementation uses generated pin roles and a private HAL callback bridge |
