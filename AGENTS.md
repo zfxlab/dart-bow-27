@@ -386,6 +386,47 @@ Do not turn historical branch documentation into a current V2 pass claim.
   points and USBX startup retained in the final ELF. H7 FLASH 128808 B,
   DTCMRAM 80296 B; F4 FLASH 54168 B, RAM 70720 B. Hardware tests are pending.
 
+## Current H723 dart application
+
+- The H723 application is migrated from `oldframe` commit
+  `7ad4f98a2da1b151394db211ba0a6a0b0458a24d` onto the `refactor/migration`
+  template at `237b4a2f3baf26fd32f59fe67f3e4ec90c8201d1`. Application code
+  lives in `app/dart`; shared BSP, Device, Module and Lib submodules are unchanged.
+- `params.dart.enabled` selects the application at build time. Disabled builds
+  exclude its sources and retain the diagnostic entry. The H723 profile enables
+  it; no F407 dart hardware profile is claimed. Application tuning and the old
+  16-dart calibration are generated from `params.dart` into the build directory.
+- H723 wiring uses IOC-regenerated TIM1_CH3/PE13 trigger PWM, PE0/PE14 input
+  roles, UART7 force sensor, UART5 DR16, USART1 referee and USART10 host.
+  USART1/UART7/USART10 are 115200. UART5 preserves the actual old/template
+  100000 9N2 setup; correct receiver framing still needs hardware confirmation.
+  All three FDCAN instances are Classic 1 Mbps; FDCAN3 admits extended IDs.
+- Motors use existing DM4310/DM8009P drivers. The old XV2 `0xC6` two-frame
+  Classic extended command is the missing operation implemented in the
+  application. Its address and direction come from robot motor entries.
+  Gantry registration was commented out in oldframe and remains absent;
+  later reload stages explicitly report missing feedback and cannot complete.
+- The old fixed aim, target override and inactive automatic game gate are
+  explicit configuration. `legacy_game_gate=true` keeps automatic firing
+  inactive by default. Initial synbelt 20 rad/s, old PID mode 0x45 semantics,
+  USB 13-byte RX/TX and 25-byte log packets are preserved. RX CRC checking
+  defaults off for old compatibility. Do not silently change these behaviors.
+- `dart::motor::debug` and volatile `dart::motor::pidtuning` expose ref/fdb,
+  gains, mode and temporary reference override. Other application subsystems
+  have named debug structs. No persistent Flash tuning API was added.
+- H723 Debug and Release link. Board binding, application configuration,
+  old/new motor packet and host protocol checks pass. Actual production
+  control/configuration/launcher ARM M7 execution passes 76 assertions with
+  emulated time. Production G4/vision receive execution passes 233 checks
+  with transport/time/message/GPIO stubs; neither test validates ThreadX
+  scheduling, DMA or physical peripherals. Production motor PID/trigger
+  functions pass 58 ARM checks with PWM stubs, and host protocol/service
+  execution passes 24 checks including full FIFO batch retention with UART,
+  time and locking stubs. Disabled dart and disabled LED paths also link.
+  No migration image has been flashed or hardware-tested. Current evidence,
+  memory sizes and remaining work: `docs/dart-handoff.md`; usage and Watch:
+  `docs/dart-migration.md` and `docs/dart-motor-validation.md`.
+
 ## Remaining risks and unresolved issues
 
 - F407 generated peripheral sources now build. Runtime and hardware behavior

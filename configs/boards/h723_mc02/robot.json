@@ -1,10 +1,10 @@
 {
   "devices": {
     "bmi088": {
-      "enabled": true
+      "enabled": false
     },
     "led": {
-      "enabled": false
+      "enabled": true
     },
     "dmimu": {
       "enabled": false,
@@ -21,26 +21,38 @@
       },
       "list": [
         {
-          "name": "motor1",
-          "model": "dji_gm6020",
-          "can_bus": "fdcan2",
-          "can_type": "classic",
-          "can_id": "0x205"
-        },
-        {
-          "name": "motor2",
+          "name": "synbelt",
           "model": "dm_dm4310",
           "can_bus": "fdcan1",
-          "can_type": "fd",
-          "can_id": "0x01",
-          "control_mode": "mit"
+          "can_type": "classic",
+          "can_id": "0x02",
+          "control_mode": "velocity"
         },
         {
-          "name": "motor3",
-          "model": "dji_gm6020",
-          "can_bus": "fdcan1",
-          "can_type": "fd",
-          "can_id": "0x206"
+          "name": "yaw",
+          "model": "dm_dm8009p",
+          "can_bus": "fdcan2",
+          "can_type": "classic",
+          "can_id": "0x03",
+          "control_mode": "velocity"
+        },
+        {
+          "name": "string_l",
+          "model": "unknown",
+          "can_bus": "fdcan3",
+          "can_type": "classic",
+          "can_id": "0x02",
+          "control_mode": "relax",
+          "positive_dir": 0
+        },
+        {
+          "name": "string_r",
+          "model": "unknown",
+          "can_bus": "fdcan3",
+          "can_type": "classic",
+          "can_id": "0x01",
+          "control_mode": "relax",
+          "positive_dir": 1
         }
       ]
     }

@@ -73,8 +73,10 @@ void Error_Handler(void);
 #define GYRO_INT_Pin GPIO_PIN_12
 #define GYRO_INT_GPIO_Port GPIOE
 #define GYRO_INT_EXTI_IRQn EXTI15_10_IRQn
-#define PS2_CMD_Pin GPIO_PIN_13
-#define PS2_CMD_GPIO_Port GPIOE
+#define LAUNCH_RETURN_Pin GPIO_PIN_14
+#define LAUNCH_RETURN_GPIO_Port GPIOE
+#define TRIGGER_LOCKED_Pin GPIO_PIN_0
+#define TRIGGER_LOCKED_GPIO_Port GPIOE
 
 /* USER CODE BEGIN Private defines */
 

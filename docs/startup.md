@@ -16,7 +16,9 @@
 
 `App_ThreadX_Init()` 与 `MX_ThreadX_Init()` 由所选板的 `Core/Src/app_threadx.c` 实现并参与编译。两板在 USER CODE 区调用 `app/app.cpp` 的 `app_start()`；CubeMX 外设初始化和 `tx_application_define` 保持不变。
 
-当前 `app_start()` 仅在 `test.auto_run_on_boot=true` 时调用 `diagnose_start()`。机器人业务在 `app/` 中组织；不要把永久业务循环放入 ThreadX 初始化回调。
+当前 `app_start()` 在 `params.dart.enabled=true` 时调用 `dart::start()`；未选择飞镖应用时，仍仅在 `test.auto_run_on_boot=true` 时调用 `diagnose_start()`。机器人业务在 `app/` 中组织；不要把永久业务循环放入 ThreadX 初始化回调。
+
+飞镖的启动线程依次初始化应用消息、传感器、上位机、视觉、控制、发射机构、电机和可选 LED 监控。`dart::startup.stage=9` 表示线程创建完成；电机使能在线程中执行，结果另看 `dart::motor::debug`。文件分工、各线程和配置入口见[飞镖迁移说明](dart-migration.md)。
 
 ## 从哪里开始写
 

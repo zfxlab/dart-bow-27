@@ -1,11 +1,18 @@
 {
   "build": {
-    "usbx": false
+    "usbx": true
   },
   "bindings": {
     "remoter_uart": "uart5",
     "vt03_uart": "usart1",
-    "referee_uart": "usart1"
+    "referee_uart": "usart1",
+    "uart_ports": {
+      "force_sensor": "uart7",
+      "host": "usart10"
+    },
+    "can_buses": {
+      "string_bus": "fdcan3"
+    }
   },
   "can": {
     "fdcan1": {
@@ -15,7 +22,7 @@
       "id_type": "standard"
     },
     "fdcan3": {
-      "id_type": "standard"
+      "id_type": "extended"
     }
   },
   "ahrs": {
@@ -26,7 +33,7 @@
     "target_temp": 45
   },
   "remoter": {
-    "source": "none",
+    "source": "dr16",
     "thread_priority": 2,
     "rx_timeout_ticks": 100,
     "offline_timeout_ticks": 120
@@ -35,8 +42,8 @@
     "thread_priority": 8
   },
   "test": {
-    "auto_run_on_boot": true,
-    "imu": true,
+    "auto_run_on_boot": false,
+    "imu": false,
     "usart": false,
     "usb": false,
     "can": false,
@@ -58,5 +65,281 @@
     "pid_max_iout": 200,
     "pid_scalar_a": 3.5,
     "pid_scalar_b": 0.2
+  },
+  "dart": {
+    "enabled": true,
+    "motor": {
+      "thread_priority": 7,
+      "period_ticks": 1,
+      "alive_check_ticks": 100,
+      "initial_syn_spd": 20.0,
+      "syn_kp": 10.0,
+      "syn_ki": 0.0,
+      "syn_kd": 10.0,
+      "syn_max_out": 10000.0,
+      "syn_max_iout": 1000.0,
+      "string_kp": 120.0,
+      "string_ki": 0.0,
+      "string_kd": 0.0,
+      "string_max_out": 5000.0,
+      "string_max_iout": 1000.0,
+      "string_max_current_ma": 5000,
+      "string_accel_rpm_s": 3000,
+      "string_manual_max_rpm": 500.0,
+      "string_force_limit_kg": 100.0,
+      "string_deadband": 0.03,
+      "trigger_open_us": 1750,
+      "trigger_idle_us": 1670,
+      "trigger_hold_ticks": 1000
+    },
+    "launcher": {
+      "thread_priority": 6,
+      "period_ticks": 1,
+      "string_relax_ticks": 1500,
+      "syn_tq_error_ticks": 5000,
+      "trigger_ready_ticks": 250,
+      "ready_fire_ticks": 750,
+      "firing_ticks": 500,
+      "fire_done_ticks": 5,
+      "gantry_deadband": 0.03,
+      "syn_deadband": 0.7,
+      "tension_deadband": 0.05,
+      "string_relax_spd": 1.0,
+      "string_relax_min_kg": 29.0,
+      "syn_pos_1": -25.2,
+      "syn_pos_2": -17.8,
+      "syn_pos_3": -36.75,
+      "syn_pos_5": 2.08,
+      "syn_slow_spd": 7.0,
+      "force_error_kg": 10000.0,
+      "syn_tq_error": 10.0
+    },
+    "system": {
+      "thread_priority": 5,
+      "period_ticks": 1,
+      "vision_open_ticks": 10,
+      "vision_closed_ticks": 700,
+      "referee_stable_ticks": 10,
+      "door_stable_ticks": 25,
+      "auto_on_boot": false,
+      "fixed_aim": true,
+      "legacy_game_gate": true,
+      "target_override": 1,
+      "yaw_fast_threshold": 0.08,
+      "yaw_mid_threshold": 0.05,
+      "yaw_deadband": 0.015,
+      "yaw_fast_spd": 1.0,
+      "yaw_mid_spd": 0.5,
+      "yaw_slow_spd": 0.15,
+      "syn_manual_scale": 0.01,
+      "trigger_threshold": 0.7
+    },
+    "sensor": {
+      "thread_priority": 3,
+      "period_ticks": 1,
+      "timeout_ticks": 100,
+      "force_scale": 10000.0
+    },
+    "host": {
+      "thread_priority": 17,
+      "period_ticks": 1,
+      "frame_timeout_ticks": 50,
+      "telemetry_ticks": 10
+    },
+    "calibration": [
+      {
+        "yaw_offset": -0.4,
+        "tension_kg_base": 64.5,
+        "tension_kg_outpost": 72.0
+      },
+      {
+        "yaw_offset": -0.4,
+        "tension_kg_base": 64.5,
+        "tension_kg_outpost": 72.0
+      },
+      {
+        "yaw_offset": -0.08,
+        "tension_kg_base": 70.0,
+        "tension_kg_outpost": 72.0
+      },
+      {
+        "yaw_offset": -0.08,
+        "tension_kg_base": 68.75,
+        "tension_kg_outpost": 72.0
+      },
+      {
+        "yaw_offset": -0.1,
+        "tension_kg_base": 68.5,
+        "tension_kg_outpost": 50.0
+      },
+      {
+        "yaw_offset": -0.2,
+        "tension_kg_base": 65.5,
+        "tension_kg_outpost": 50.0
+      },
+      {
+        "yaw_offset": -0.18,
+        "tension_kg_base": 69.0,
+        "tension_kg_outpost": 50.0
+      },
+      {
+        "yaw_offset": -0.08,
+        "tension_kg_base": 68.4,
+        "tension_kg_outpost": 50.0
+      },
+      {
+        "yaw_offset": 0.0,
+        "tension_kg_base": 69.0,
+        "tension_kg_outpost": 50.0
+      },
+      {
+        "yaw_offset": 0.0,
+        "tension_kg_base": 69.0,
+        "tension_kg_outpost": 50.0
+      },
+      {
+        "yaw_offset": 0.0,
+        "tension_kg_base": 69.0,
+        "tension_kg_outpost": 50.0
+      },
+      {
+        "yaw_offset": 0.0,
+        "tension_kg_base": 69.0,
+        "tension_kg_outpost": 50.0
+      },
+      {
+        "yaw_offset": 0.0,
+        "tension_kg_base": 69.0,
+        "tension_kg_outpost": 50.0
+      },
+      {
+        "yaw_offset": 0.0,
+        "tension_kg_base": 69.0,
+        "tension_kg_outpost": 50.0
+      },
+      {
+        "yaw_offset": 0.0,
+        "tension_kg_base": 69.0,
+        "tension_kg_outpost": 50.0
+      },
+      {
+        "yaw_offset": 0.0,
+        "tension_kg_base": 69.0,
+        "tension_kg_outpost": 50.0
+      }
+    ],
+    "distance_table": [
+      {
+        "id": 1,
+        "distance": 25.0,
+        "yaw_offset": -0.8,
+        "tension_kg": 66.0
+      },
+      {
+        "id": 2,
+        "distance": 25.0,
+        "yaw_offset": -1.2,
+        "tension_kg": 67.0
+      },
+      {
+        "id": 3,
+        "distance": 25.0,
+        "yaw_offset": -0.68,
+        "tension_kg": 66.0
+      },
+      {
+        "id": 4,
+        "distance": 25.0,
+        "yaw_offset": -1.2,
+        "tension_kg": 67.0
+      },
+      {
+        "id": 5,
+        "distance": 25.0,
+        "yaw_offset": -0.9,
+        "tension_kg": 64.5
+      },
+      {
+        "id": 6,
+        "distance": 25.0,
+        "yaw_offset": -0.75,
+        "tension_kg": 65.5
+      },
+      {
+        "id": 7,
+        "distance": 25.0,
+        "yaw_offset": 0.0,
+        "tension_kg": 82.0
+      },
+      {
+        "id": 8,
+        "distance": 25.0,
+        "yaw_offset": -0.7,
+        "tension_kg": 66.0
+      },
+      {
+        "id": 9,
+        "distance": 25.0,
+        "yaw_offset": 0.0,
+        "tension_kg": 69.0
+      },
+      {
+        "id": 10,
+        "distance": 25.0,
+        "yaw_offset": 0.0,
+        "tension_kg": 69.0
+      },
+      {
+        "id": 11,
+        "distance": 25.0,
+        "yaw_offset": 0.0,
+        "tension_kg": 69.0
+      },
+      {
+        "id": 12,
+        "distance": 25.0,
+        "yaw_offset": 0.0,
+        "tension_kg": 69.0
+      },
+      {
+        "id": 13,
+        "distance": 25.0,
+        "yaw_offset": 0.0,
+        "tension_kg": 69.0
+      },
+      {
+        "id": 14,
+        "distance": 25.0,
+        "yaw_offset": 0.0,
+        "tension_kg": 69.0
+      },
+      {
+        "id": 15,
+        "distance": 25.0,
+        "yaw_offset": 0.0,
+        "tension_kg": 69.0
+      },
+      {
+        "id": 16,
+        "distance": 25.0,
+        "yaw_offset": 0.0,
+        "tension_kg": 69.0
+      }
+    ],
+    "sequence": [
+      3,
+      4,
+      5,
+      8
+    ],
+    "pre_tension_kg": 32.0,
+    "vision": {
+      "verify_crc": false
+    },
+    "monitor": {
+      "thread_priority": 19,
+      "period_ticks": 2,
+      "phase_ticks": 500
+    }
   }
 }

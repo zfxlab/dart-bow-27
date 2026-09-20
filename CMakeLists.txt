@@ -118,6 +118,10 @@ unset(PARAMS)
 unset(ROBOT_CONFIG)
 unset(OUT_DIR)
 
+include("${CMAKE_CURRENT_SOURCE_DIR}/app/dart/config.cmake")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/app/dart/config.cmake")
+
 function(pnx_exclude_bsp_module source_list module_name)
     file(TO_CMAKE_PATH "${PNX_BSP_SOURCE_DIR}/${module_name}/" module_prefix)
     set(filtered_sources)
@@ -140,6 +144,10 @@ file(GLOB_RECURSE PNX_EMBEDDED_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/app/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/diagnose/*.cpp"
 )
+
+if(NOT PNX_DART_ENABLED)
+    list(FILTER PNX_EMBEDDED_SOURCES EXCLUDE REGEX "/app/dart/")
+endif()
 
 if(NOT ENABLE_USART_TEST)
     list(FILTER PNX_EMBEDDED_SOURCES EXCLUDE REGEX "/diagnose/usart/")
@@ -302,6 +310,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 )
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE
+    PNX_DART_ENABLED=$<BOOL:${PNX_DART_ENABLED}>
     PNX_DMA_DEDICATED_SECTION=${PNX_DMA_DEDICATED_SECTION}
     PNX_DMA_CACHE_LINE_SIZE=${PNX_DMA_CACHE_LINE_SIZE}
     ROBOT_MOTOR_COUNT=${robot_motor_count}

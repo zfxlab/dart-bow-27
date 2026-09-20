@@ -2,7 +2,7 @@
 
 PnX_template 是一个基于 STM32 和 ThreadX 的嵌入式下位机模板，整合了板级外设、常用设备和可复用的基础库。
 
-文档最后更新：2026-09-13
+文档最后更新：2026-09-19
 
 ## 当前架构与构建入口
 
@@ -37,6 +37,7 @@ H723 与 F407 共用同一套 Template、Lib、Device 和 Module，但使用不�
 
 ## 按功能查找
 
+- [飞镖应用迁移](dart-migration.md)：当前 H723 应用、配置、旧行为、调试与 PID tuning；[交接状态](dart-handoff.md)
 - [使用 Motor](api/index.md)：电机的注册、控制和状态读取
 - [使用 IMU 或 AHRS](api/index.md)：姿态数据的获取和 AHRS Service
 - [使用 Remoter](api/index.md)：遥控器数据接收和使用

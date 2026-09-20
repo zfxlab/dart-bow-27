@@ -20,6 +20,14 @@
       "bmi088_gyro_drdy": {
         "pin": "pe12",
         "active_level": "high"
+      },
+      "trigger_locked": {
+        "pin": "pe0",
+        "active_level": "low"
+      },
+      "launch_return": {
+        "pin": "pe14",
+        "active_level": "high"
       }
     },
     "gpio_outputs": {
@@ -37,6 +45,10 @@
         "timer": "tim3",
         "channel": 4,
         "failsafe_timer": "tim6"
+      },
+      "trigger": {
+        "timer": "tim1",
+        "channel": 3
       }
     }
   },
