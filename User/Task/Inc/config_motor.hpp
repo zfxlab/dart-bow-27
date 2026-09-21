@@ -56,8 +56,8 @@ class ServoMotors
     {
         this->htim = nullptr;
         this->channel = 0;
-        this->open_pulse = 1750  / 20000.0f;
-        this->idle_pulse = 1670 / 20000.0f;//50Hz //1750
+        this->open_pulse = 1050.0  / 20000.0f;
+        this->idle_pulse = 1500.0 / 20000.0f;//50Hz //1750
         this->last_pulse = 0.0f;
         this->pwm_stopped = false;
         this->open_reset_state = OPEN_RESET_IDLE;
