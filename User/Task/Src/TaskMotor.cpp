@@ -82,7 +82,7 @@ float debug_syn_tq;
     float string_L_spd = 0.0f;
     float string_R_spd = 0.0f;
     const uint16_t string_max_current = 5000;
-    const float string_open_loop_max_spd = 500.0f;
+    const float string_open_loop_max_spd = 2000.0f;
     const float string_force_limit_kg = 100.0f;
     const uint32_t gantry_alive_check_period = 100;
     const uint8_t gantry_alive_lost_limit = 3;
